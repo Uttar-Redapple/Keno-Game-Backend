@@ -32,8 +32,10 @@
         "redis": "^4.1.0",
         "save": "^2.5.0",
         "sequelize": "^6.17.0",
+        "sequelize-cli": "^6.6.0",
         "shortid": "^2.2.16",
         "socket.io": "^4.2.0",
+        "sqlite3": "^5.1.6",
         "uuid": "^8.3.2"
     }
 }

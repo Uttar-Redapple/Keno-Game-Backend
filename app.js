@@ -37,8 +37,6 @@ process.on('unhandledRejection', (reason, p) => {
   // application specific logging, throwing an error, or other logic here
 });
 
-app.use(express.static(path.join(__dirname, 'views')));
-
 // Bootstrap route
 const routesPath = './src/routes';
 fs.readdirSync(routesPath).forEach(function (file) {
