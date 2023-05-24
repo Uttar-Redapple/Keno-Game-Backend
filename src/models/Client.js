@@ -7,13 +7,14 @@ const { generatePassword } = require('../libs/otpLib');
 //const sequelize = require('sequelize');
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = new Sequelize('sqlite::memory:');
-const {dataAPI} = require('../../www/db/db')
+const dataAPI = require('../../www/db/db');
 
 //const Client = sequelize.define('Client', )
 
+console.log("dsdayha pr aya ")
 
 
-const Client = dataAPI.define('Client',{
+const Client = sequelize.define('Client',{
     client_id:{
 
         // Integer Datatype
