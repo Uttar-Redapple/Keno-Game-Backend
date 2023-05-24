@@ -7,8 +7,7 @@ const notification = require('../libs/notificationLib');
 const { v4: uuidv4 } = require('uuid');
 const tokenLib = require('../libs/tokenLib');
 const passwordLib = require('../libs/passwordLib');
-const  clientModel = require('../models/Client');
-
+const  clientModel = require('../models/Clientt');
 
 
 let login = async(req, res) => {
