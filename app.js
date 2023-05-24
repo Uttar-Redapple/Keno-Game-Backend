@@ -32,15 +32,6 @@ process.on('unhandledRejection', (reason, p) => {
   // application specific logging, throwing an error, or other logic here
 });
 
-// Bootstrap route
-//const routesPath = './src/routes';
-// fs.readdirSync(routesPath).forEach(function (file) {
-//   if (~file.indexOf('.js')) {
-//     let route = require(routesPath + '/' + file);
-//     route.setRouter(app);
-//   }
-// });
-// end bootstrap route
 
 /* Start Database*/
 console.log("I am process",process.env.DATABASE_TYPE);
