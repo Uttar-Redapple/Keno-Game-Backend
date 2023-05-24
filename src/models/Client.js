@@ -6,15 +6,13 @@ const { v4: uuidv4 } = require('uuid');
 const { generatePassword } = require('../libs/otpLib');
 //const sequelize = require('sequelize');
 const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = new Sequelize('sqlite::memory:');
-const dataAPI = require('../../www/db/db');
+const {dataAPI} = require('../../www/db/db')
 
 //const Client = sequelize.define('Client', )
 
-console.log("dsdayha pr aya ")
 
 
-const Client = sequelize.define('Client',{
+const Clientt = dataAPI.define('Clientt',{
     client_id:{
 
         // Integer Datatype
@@ -66,5 +64,5 @@ const Client = sequelize.define('Client',{
 //   };
   
 //   connect();
-Client.sync() 
-module.exports = Client ;
+Clientt.sync() 
+module.exports = Clientt ;

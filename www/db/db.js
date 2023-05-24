@@ -1,5 +1,4 @@
 
-let dataAPI;
 const { Sequelize } = require('sequelize');
 const mode = process.env.NODE_ENV;
 const mongoose = require('mongoose');
@@ -7,6 +6,9 @@ const server = require('../rest/server');
 const appConfig = require('../../config/appConfig');
 const db = {};
 const redis = require('redis');
+const dbConfig = require("../../config/dbConfig.json")[mode];
+let dataAPI = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.password, dbConfig);
+const fs = require('fs');
 
 
 const startDB = (app,db_type)=>{
@@ -14,9 +16,6 @@ const startDB = (app,db_type)=>{
         case "mysql":
             console.log(`Environment : ${process.env.NODE_ENV} Database : ${process.env.DATABASE_TYPE}`);
             //Import the sequelize module
-            
-            const dbConfig = require("../../config/dbConfig.json")[mode];
-            dataAPI = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.password, dbConfig);
             try{
                 dataAPI.authenticate()
                 .then(()=>{
@@ -29,8 +28,24 @@ const startDB = (app,db_type)=>{
                     //     console.log("Error " + err)
                     // });
                     server.startServer(app);
-                    module.exports.dataAPI = dataAPI;
+                    // module.exports.dataAPI = dataAPI;
                     //module.exports.redis_client = redis_client;
+                    // // Bootstrap route
+                    console.log('CWD :: ',process.cwd());
+                    const schemaPath = `${process.cwd()}/src/models`;
+                    //Bootstrap models
+                    fs.readdirSync(schemaPath).forEach(function (file) {
+                    if (~file.indexOf('.js')) require(schemaPath + '/' + file)
+                    });
+                    // end Bootstrap models
+                    const routesPath = `${process.cwd()}/src/routes`;
+                    fs.readdirSync(routesPath).forEach(function (file) {
+                    if (~file.indexOf('.js')) {
+                        let route = require(routesPath + '/' + file);
+                        route.setRouter(app);
+                    }
+                    });
+                    // // end bootstrap route
                     
                 });
             }catch(err){
@@ -86,5 +101,6 @@ mongoose.set('debug', true);
 
 
 module.exports = {
-    startDB : startDB
+    startDB : startDB,
+    dataAPI:dataAPI
 }
