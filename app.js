@@ -13,12 +13,7 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const schemaPath = './src/models';
-//Bootstrap models
-fs.readdirSync(schemaPath).forEach(function (file) {
-  if (~file.indexOf('.js')) require(schemaPath + '/' + file)
-});
-// end Bootstrap models
+
 // app.set('views','views');
 // app.set('view engine','ejs');
 app.use(express.json());
@@ -38,13 +33,13 @@ process.on('unhandledRejection', (reason, p) => {
 });
 
 // Bootstrap route
-const routesPath = './src/routes';
-fs.readdirSync(routesPath).forEach(function (file) {
-  if (~file.indexOf('.js')) {
-    let route = require(routesPath + '/' + file);
-    route.setRouter(app);
-  }
-});
+//const routesPath = './src/routes';
+// fs.readdirSync(routesPath).forEach(function (file) {
+//   if (~file.indexOf('.js')) {
+//     let route = require(routesPath + '/' + file);
+//     route.setRouter(app);
+//   }
+// });
 // end bootstrap route
 
 /* Start Database*/

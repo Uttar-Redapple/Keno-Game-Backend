@@ -7,6 +7,7 @@ const notification = require('../libs/notificationLib');
 const { v4: uuidv4 } = require('uuid');
 const tokenLib = require('../libs/tokenLib');
 const passwordLib = require('../libs/passwordLib');
+const  clientModel = require('../models/Client');
 
 
 let login = async(req, res) => {
@@ -53,7 +54,6 @@ let login = async(req, res) => {
 
 let getClient = async(req, res) => {
     try {
-            const  clientModel = require('../models/Client');
             let clientList = await clientModel.find().select('-__v').lean();
 
             console.log('client list', clientList);
