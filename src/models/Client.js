@@ -12,18 +12,11 @@ const {dataAPI} = require('../../www/db/db')
 
 
 
-const Clientt = dataAPI.define('Clientt',{
+const Client = dataAPI.define('Client',{
     client_id:{
 
         // Integer Datatype
-        type:Sequelize.INTEGER,
-  
-        // Increment the value automatically
-        autoIncrement:true,
-  
-        // user_id can not be null.
-        allowNull:false,
-  
+        type:Sequelize.STRING,
         // To uniquely identify user
         primaryKey:true
      },
@@ -64,5 +57,5 @@ const Clientt = dataAPI.define('Clientt',{
 //   };
   
 //   connect();
-Clientt.sync() 
-module.exports = Clientt ;
+Client.sync() 
+module.exports = Client ;
