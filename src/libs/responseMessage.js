@@ -1,4 +1,10 @@
 module.exports = {
+	LOGIN_SUCCESS : "login successful",
+	PASSWORD_INCORRECT : "Password Incorrect",
+	CLIENT_DOES_NOT_EXIST : "Client does not exist",
+	CLIENT_NOT_CREATED : "Some error occurred while creating the client.",
+	INVALID_EMAIL: 'Invalid email.',
+	CLIENT_CREATED :'Client Created',
 	countryList: 'Country list',
 	stateList: 'State list',
 	OTP_SEND: 'OTP sent Successfully!',
@@ -131,7 +137,5 @@ module.exports = {
 	CATEGORY_ALREADY_EXITS : "Course already exist",
 	SUBCATEGORY_ALREADY_EXITS : "Course already exist",
 	
-	SMS_BODY: (otp) => `Your verification code is  ${otp}`,
-	REFER_SMS_BODY: (first_name, last_name, referral_code, iosLink, androidLink, webLink) => `${first_name} ${last_name} wants to refer you on PayPenny application. 
-	Please use ${referral_code} as the referral code. Website Link : ${webLink}, Android Link : ${androidLink}, IOS Link : ${iosLink}`
+	
 };
