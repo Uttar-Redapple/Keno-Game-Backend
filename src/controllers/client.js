@@ -23,11 +23,11 @@ let login = async(req, res) => {
 console.log("secretOrPrivateKey is ",process.env.ENC_KEY);
 const client = await Client.findOne({ where : {e_mail : req.body.e_mail }});
 if(client){
-  const passwordMatch = await bcrypt.compare(req.body.password,client.password)
+  //const passwordMatch = await bcrypt.compare(req.body.password,client.password)
   console.log("i am inside login",req.body);
-   //const password_valid = req.body.password==client.password;
-   console.log("i am password match",passwordMatch);
-   if(passwordMatch){
+   const password_valid = req.body.password==client.password;
+   //console.log("i am password match",passwordMatch);
+   if(password_valid){
        token = jwt.sign({ "id" : client.client_id,"email" : client.e_mail},process.env.ENC_KEY);
        res.status(200).json({ message : resMessage.LOGIN_SUCCESS,token : token,error : false });
    } else {
@@ -49,8 +49,8 @@ let create = async(req, res,next) => {
   console.log("I am req",req.body);
 
   //console.log("i am EmailValid",Email.Email(req.body.e_mail));
-    const passwordHash = await bcrypt.hash(req.body.password,10);
-      console.log("i am the hashed password",passwordHash);
+    
+      //console.log("i am the hashed password",passwordHash);
 
     //  if(!Email.Email(req.body.email)){
 
@@ -62,31 +62,32 @@ let create = async(req, res,next) => {
     //    //console.log( "i am error",apiError.invalid(responseMessage.INVALID_EMAIL));
     //  }
 
-    //  const schema =  Joi.object({
-    //   client_id: Joi.string().required(),
-    //   e_mail: Joi.string().regex(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/).required(),
-    //   password: Joi.string().regex(/(?=.*[a-z])(?=.*[A-Z])(?=.*d)(?=.*[$@$!#.])[A-Za-zd$@$!%*?&.]{8,20}/) .required().min(8).max(20),
-    //   status: Joi.string().required(),
-    //   name: Joi.required().required(),
-    //   client_role: Joi.string().required(),
-    //   created_by: Joi.string().required()
-    //  })
+     const schema =  Joi.object({
+      client_id: Joi.string().required(),
+      e_mail: Joi.string().regex(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/).required(),
+      password: Joi.string().regex(/(?=.*[a-z])(?=.*[A-Z])(?=.*d)(?=.*[$@$!#.])[A-Za-zd$@$!%*?&.]{8,20}/) .required().min(8).max(20),
+      status: Joi.string().required(),
+      name: Joi.required().required(),
+      client_role: Joi.string().required(),
+      created_by: Joi.string().required()
+     })
       const client = {
         client_id: req.body.client_id,
         e_mail: req.body.e_mail,
-        password: passwordHash,
+        password: req.body.password,
         status: req.body.status,
         name: req.body.name,
         client_role: req.body.client_role,
         created_by: req.body.created_by,
       
     };
-    //const validatedBody = schema.validate(client);
-    //const validatedBody = Joi.validate(client, schema)
-    //client.client_id = clientId ;
+    const validatedBody = schema.validate(client);
+    
     // Save Client in the database
-    //console.log("client data",validatedBody);
-    Client.create(client)
+    const passwordHash = await bcrypt.hash(req.body.password,10);
+    validatedBody.value.password = passwordHash;
+    console.log("client data",validatedBody.value);
+    Client.create(validatedBody.value)
       .then(data => {
         res.status(200).send({
           
