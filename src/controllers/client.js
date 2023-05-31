@@ -14,7 +14,7 @@ const apiError = require('../libs/apiError');
 const bcrypt = require('bcrypt');
 const resMessage = require('../libs/responseMessage');
 const responseMessage = require('../libs/responseMessage');
-const Email = require('../libs/paramsValidationLib');
+//const Email = require('../libs/paramsValidationLib');
 
 
 //const response = require('../libs/response');
@@ -22,14 +22,15 @@ const Email = require('../libs/paramsValidationLib');
 let login = async(req, res) => {
 console.log("secretOrPrivateKey is ",process.env.ENC_KEY);
 const client = await Client.findOne({ where : {e_mail : req.body.e_mail }});
+console.log("i am client",client);
 if(client){
-  //const passwordMatch = await bcrypt.compare(req.body.password,client.password)
+  passwordMatch = await bcrypt.compare(req.body.password,client.password)
   console.log("i am inside login",req.body);
-   const password_valid = req.body.password==client.password;
+   //const password_valid = req.body.password==client.password;
    //console.log("i am password match",passwordMatch);
-   if(password_valid){
+   if(passwordMatch){
        token = jwt.sign({ "id" : client.client_id,"email" : client.e_mail},process.env.ENC_KEY);
-       res.status(200).json({ message : resMessage.LOGIN_SUCCESS,token : token,error : false });
+       res.status(200).json({ message : resMessage.LOGIN_SUCCESS,token : token,error : false ,client_role : client.client_role});
    } else {
      res.status(400).json({ message : resMessage.PASSWORD_INCORRECT,error : true});
    }
@@ -43,7 +44,7 @@ if(client){
 
 let create = async(req, res,next) => { 
 
- //let clientId = uuidv4.create();
+ let clientId = uuidv4();
 
   try{ 
   console.log("I am req",req.body);
@@ -63,7 +64,7 @@ let create = async(req, res,next) => {
     //  }
 
      const schema =  Joi.object({
-      client_id: Joi.string().required(),
+      //client_id: Joi.string().required(),
       e_mail: Joi.string().regex(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/).required(),
       password: Joi.string().regex(/(?=.*[a-z])(?=.*[A-Z])(?=.*d)(?=.*[$@$!#.])[A-Za-zd$@$!%*?&.]{8,20}/) .required().min(8).max(20),
       status: Joi.string().required(),
@@ -72,7 +73,7 @@ let create = async(req, res,next) => {
       created_by: Joi.string().required()
      })
       const client = {
-        client_id: req.body.client_id,
+        //client_id: req.body.client_id,
         e_mail: req.body.e_mail,
         password: req.body.password,
         status: req.body.status,
@@ -86,6 +87,7 @@ let create = async(req, res,next) => {
     // Save Client in the database
     const passwordHash = await bcrypt.hash(req.body.password,10);
     validatedBody.value.password = passwordHash;
+    validatedBody.value.client_id = clientId;
     console.log("client data",validatedBody.value);
     Client.create(validatedBody.value)
       .then(data => {

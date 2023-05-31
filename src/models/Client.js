@@ -38,6 +38,12 @@ const Client = dataAPI.define('Client',{
     name : {
         type : DataTypes.STRING
     },
+    user_name : {
+        type : DataTypes.STRING
+    },
+    contact : {
+        type : DataTypes.STRING
+    },
     client_role: {
         type: DataTypes.STRING,
         enum: ['admin', 'sub_admin','area_manager','shop_owner','supervisor','cashier']
