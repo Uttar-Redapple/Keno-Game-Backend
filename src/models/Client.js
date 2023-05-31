@@ -2,9 +2,6 @@
 /**
  * Module Dependencies
  */
-const { v4: uuidv4 } = require('uuid');
-const { generatePassword } = require('../libs/otpLib');
-//const sequelize = require('sequelize');
 const { Sequelize, DataTypes } = require('sequelize');
 const {dataAPI} = require('../../www/db/db')
 
@@ -21,36 +18,38 @@ const Client = dataAPI.define('Client',{
         primaryKey:true
      },
     e_mail: {
-        type: DataTypes.STRING,
+        type: Sequelize.STRING,
         default: '',
         unique: true
     },
     password: {
-        type: DataTypes.STRING,
+        type: Sequelize.STRING,
         default: '',
         unique: false
     },
     status: {
-        type: DataTypes.STRING,
+        type: Sequelize.STRING,
         enum: ['active', 'inactive', 'deleted'],
         default: 'active'
     },
     name : {
-        type : DataTypes.STRING
+        type : Sequelize.STRING
     },
     user_name : {
-        type : DataTypes.STRING
+        type : Sequelize.STRING,
+        unique: true
     },
     contact : {
-        type : DataTypes.STRING
+        type : Sequelize.INTEGER,
+        unique: true
     },
     client_role: {
-        type: DataTypes.STRING,
-        enum: ['admin', 'sub_admin','area_manager','shop_owner','supervisor','cashier']
+        type: Sequelize.ENUM,
+        values: ['1','2','3','4','5','6','7','8']
     },
     created_by:{
-        type: DataTypes.STRING,
-        default:''
+        type: Sequelize.ENUM,
+        values: ['1','2','3','4','5','6']
     }
 }, {
     freezeTableName: true

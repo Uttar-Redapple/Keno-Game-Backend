@@ -30,7 +30,7 @@ if(client){
    //console.log("i am password match",passwordMatch);
    if(passwordMatch){
        token = jwt.sign({ "id" : client.client_id,"email" : client.e_mail},process.env.ENC_KEY);
-       res.status(200).json({ message : resMessage.LOGIN_SUCCESS,token : token,error : false ,client_role : client.client_role});
+       res.status(200).json({ message : resMessage.LOGIN_SUCCESS,token : token,error : false ,created_by : client.created_by});
    } else {
      res.status(400).json({ message : resMessage.PASSWORD_INCORRECT,error : true});
    }
@@ -70,7 +70,9 @@ let create = async(req, res,next) => {
       status: Joi.string().required(),
       name: Joi.required().required(),
       client_role: Joi.string().required(),
-      created_by: Joi.string().required()
+      created_by: Joi.string().required(),
+      contact : Joi.number().required(),
+      user_name : Joi.string().required()
      })
       const client = {
         //client_id: req.body.client_id,
@@ -80,6 +82,8 @@ let create = async(req, res,next) => {
         name: req.body.name,
         client_role: req.body.client_role,
         created_by: req.body.created_by,
+        contact : req.body.contact,
+        user_name : req.body.user_name
       
     };
     const validatedBody = schema.validate(client);
