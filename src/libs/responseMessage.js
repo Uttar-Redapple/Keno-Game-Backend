@@ -5,6 +5,8 @@ module.exports = {
 	CLIENT_NOT_CREATED : "Some error occurred while creating the client.",
 	INVALID_EMAIL: 'Invalid email.',
 	CLIENT_CREATED :'Client Created',
+	ROLE_CONFLICT : 'Client role id should be greater than the created_by role id',
+	CLIENTS_FOUND :'Clients list viewed successfully',
 	countryList: 'Country list',
 	stateList: 'State list',
 	OTP_SEND: 'OTP sent Successfully!',

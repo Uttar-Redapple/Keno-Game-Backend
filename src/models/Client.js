@@ -17,6 +17,12 @@ const Client = dataAPI.define('Client',{
         // To uniquely identify user
         primaryKey:true
      },
+     creater_id:{
+
+        // Integer Datatype
+        type:Sequelize.STRING
+        
+     },
     e_mail: {
         type: Sequelize.STRING,
         default: '',
@@ -40,11 +46,12 @@ const Client = dataAPI.define('Client',{
         unique: true
     },
     contact : {
-        type : Sequelize.INTEGER,
+        type : Sequelize.STRING,
         unique: true
     },
     client_role: {
         type: Sequelize.ENUM,
+        //values: [1,2,3,4,5,6,7,8]
         values: ['1','2','3','4','5','6','7','8']
     },
     created_by:{
