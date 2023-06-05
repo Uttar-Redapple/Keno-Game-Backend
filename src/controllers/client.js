@@ -137,12 +137,11 @@ let edit_created_client = async (req,res,next)=>{
       user_name : req.body.user_name
     
   };
+  const passwordHash = await bcrypt.hash(req.body.password,10);
   const validatedBody = schema.validate(client);
-  console.log("we are existing clients",client); 
   validatedBody.client_id = req.body.client_id ;
-   const {e_mail,password,status,name,client_role,contact,user_name} = validatedBody.value;
   console.log(e_mail,req.client_id,validatedBody.value);
-  const update = await Client.update({e_mail:validatedBody.value.e_mail,password : validatedBody.value.password,status : validatedBody.value.status,name : validatedBody.value.name,client_role : validatedBody.value.client_role,contact : validatedBody.value.contact,user_name : validatedBody.value.user_name},{ where : {client_id : req.body.client_id,creater_id : req.client_id }});
+  const update = await Client.update({e_mail:validatedBody.value.e_mail,password : passwordHash,status : validatedBody.value.status,name : validatedBody.value.name,client_role : validatedBody.value.client_role,contact : validatedBody.value.contact,user_name : validatedBody.value.user_name},{ where : {client_id : req.body.client_id,creater_id : req.client_id }});
   if(update){
     return res.status(200).json({ update : update , message : "updated",error : false})
 

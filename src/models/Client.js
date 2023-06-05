@@ -34,6 +34,9 @@ const Client = dataAPI.define('Client',{
         default: 'red',
         unique: false
     },
+    amount: {
+        type: Sequelize.INTEGER
+    },
     status: {
         type: Sequelize.STRING,
         enum: ['active', 'inactive', 'deleted'],
