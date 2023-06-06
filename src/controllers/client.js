@@ -140,7 +140,7 @@ let edit_created_client = async (req,res,next)=>{
   const passwordHash = await bcrypt.hash(req.body.password,10);
   const validatedBody = schema.validate(client);
   validatedBody.client_id = req.body.client_id ;
-  console.log(e_mail,req.client_id,validatedBody.value);
+  //console.log(e_mail,req.client_id,validatedBody.value);
   const update = await Client.update({e_mail:validatedBody.value.e_mail,password : passwordHash,status : validatedBody.value.status,name : validatedBody.value.name,client_role : validatedBody.value.client_role,contact : validatedBody.value.contact,user_name : validatedBody.value.user_name},{ where : {client_id : req.body.client_id,creater_id : req.client_id }});
   if(update){
     return res.status(200).json({ update : update , message : "updated",error : false})
@@ -159,7 +159,7 @@ let edit_created_client = async (req,res,next)=>{
 //Client list
 let find_all_clients = async (req,res,next)=>{
 
-  console.log("i am from req.param ",req.body.client_role);
+  //console.log("i am from req.param ",req.body.client_role);
   const client = await Client.findAll({ where : {creater_id : req.client_id}});
   console.log("we are existing clients",client);
   if(client){
