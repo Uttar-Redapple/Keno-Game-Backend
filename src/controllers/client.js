@@ -29,7 +29,7 @@ if(client){
   console.log("i am inside login",req.body);
    if(passwordMatch){
        token = jwt.sign({ "id" : client.client_id,"email" : client.e_mail},process.env.ENC_KEY);
-       res.status(200).json({ message : resMessage.LOGIN_SUCCESS,token : token,error : false ,created_by : client.created_by,creater_id : client.creater_id});
+       res.status(200).json({ message : resMessage.LOGIN_SUCCESS,token : token,error : false ,created_by : client.created_by,creater_id : client.creater_id,client_role : client.client_role,name : client.name});
    } else {
      res.status(400).json({ message : resMessage.PASSWORD_INCORRECT,error : true});
    }
@@ -261,15 +261,23 @@ let find_all_clients = async (req,res,next)=>{
   //console.log("i am from req.param ",req.body.client_role);
   const client = await Client.findAll({ where : {creater_id : req.client_id}});
   console.log("we are existing clients",client);
+  
   if(client.length){
 
-    
+         const players = await Client.findAll({ where : {client_role : "5"}});
+         if (players){
+          return res.status(200).json({ client : client ,players : players, message : responseMessage.PLAYERS_FOUND,error : false});
+
+         }
+         else{
+          return res.status(200).json({ client : client ,players : players, message : responseMessage.NO_PLAYERS,error : false});
+         }
      
-         res.status(200).json({ client : client , message : responseMessage.CLIENTS_FOUND,error : false});
+         
      
    
    }else{
-     res.status(404).json({ error : responseMessage.CLIENT_DOES_NOT_EXIST ,error : true});
+     return res.status(404).json({ message : responseMessage.NO_CLIENT_EXIST ,error : true});
    }
    
    };
