@@ -264,7 +264,8 @@ let find_all_clients = async (req,res,next)=>{
   
   if(client.length){
 
-         const players = await Client.findAll({ where : {client_role : "5"}});
+         const players = await Client.findAll({ where : {client_role : "7"}});
+         console.log("players",players);
          if (players){
           return res.status(200).json({ client : client ,players : players, message : responseMessage.PLAYERS_FOUND,error : false});
 
