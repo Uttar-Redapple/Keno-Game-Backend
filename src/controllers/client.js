@@ -89,6 +89,10 @@ let create = async(req, res,next) => {
     console.log("i am req.body",req.body.e_mail);
     const existedClient = await Client.findOne({ where : {e_mail : req.body.e_mail}});
     console.log("i am existed client",existedClient);
+    const {dataValues} = loggedInClient;
+    const existedClientByContactNo = await Client.findOne({ where : {contact : req.body.contact}});
+    const existedClientByName = await Client.findOne({ where : {name : req.body.e_mail}});
+    const existedClientByUserName = await Client.findOne({ where : {user_name : req.body.user_name}});
     if(existedClient){
       return res.status(409).send({
           
@@ -96,9 +100,29 @@ let create = async(req, res,next) => {
     });
 
     }
+    else if(existedClientByContactNo){
+      return res.status(409).send({
+          
+        message : responseMessage.CONTACT_NO_EXIST,error : true
+    });
+    
+
+    }
+    else if(existedClientByName){
+      return res.status(409).send({
+          
+        message : responseMessage.NAME_EXIST,error : true
+    });
+  }
+  else if(existedClientByUserName){
+    return res.status(409).send({
+        
+      message : responseMessage.USER_NAME_EXIST,error : true
+  });
+}
     else{
     //console.log("i am loggedInClient",loggedInClient);
-    const {dataValues} = loggedInClient;
+    
     // Save Client in the database
     const passwordHash = await bcrypt.hash(req.body.password,10);
     validatedBody.value.password = passwordHash;
@@ -190,7 +214,7 @@ let edit_created_client = async (req,res,next)=>{
   }
 }
 else{
-  return res.status(401).json({message : responseMessage.UPDATING_NOT_ALLOWED,error : false})
+  return res.status(401).json({message : responseMessage.UPDATING_NOT_ALLOWED,error : true})
 }
 }
 
@@ -237,7 +261,7 @@ let find_all_clients = async (req,res,next)=>{
   //console.log("i am from req.param ",req.body.client_role);
   const client = await Client.findAll({ where : {creater_id : req.client_id}});
   console.log("we are existing clients",client);
-  if(client){
+  if(client.length){
 
     
      
