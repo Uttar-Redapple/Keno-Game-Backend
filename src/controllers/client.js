@@ -23,7 +23,9 @@ console.log("secretOrPrivateKey is ",process.env.ENC_KEY);
 const client = await Client.findOne({ where : {e_mail : req.body.e_mail }});
 console.log("i am client",client);
 if(client){
+  if(client.dataValues.status == "active"){
   passwordMatch = await bcrypt.compare(req.body.password,client.password)
+  
   console.log("i am inside login",req.body);
    if(passwordMatch){
        token = jwt.sign({ "id" : client.client_id,"email" : client.e_mail},process.env.ENC_KEY);
@@ -32,9 +34,14 @@ if(client){
      res.status(400).json({ message : resMessage.PASSWORD_INCORRECT,error : true});
    }
  
- }else{
-   res.status(404).json({ message : resMessage.CLIENT_DOES_NOT_EXIST,error : true });
  }
+ else{
+   res.status(404).json({ message : resMessage.CLIENT_IS_NOT_ACTIVE,error : true });
+ }
+}
+else{
+  res.status(404).json({ message : resMessage.CLIENT_DOES_NOT_EXIST,error : true });
+}
 }
 catch(error) {
   return next(error)
@@ -48,14 +55,19 @@ let create = async(req, res,next) => {
 
   try{ 
   console.log("I am req",req.body);
+     //const e_mail_pattern = "/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/";
+     //const password_pattern = "/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/";
      const schema =  Joi.object({
       //client_id: Joi.string().required(),
       
-      e_mail: Joi.string().regex(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/).required(),
-      password: Joi.string().regex(/(?=.*[a-z])(?=.*[A-Z])(?=.*d)(?=.*[$@$!#.])[A-Za-zd$@$!%*?&.]{8,20}/) .required().min(8).max(20),
+      e_mail: Joi.string().required().regex(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/),
+      password: Joi.string().required(),
       status: Joi.string().required(),
       name: Joi.string().required(),
       client_role: Joi.number().required(),
+      create : Joi.string().required(),
+      update :  Joi.string().required(),
+      delete :  Joi.string().required(),
       contact : Joi.string().required(),
       user_name : Joi.string().required()
      })
@@ -65,14 +77,27 @@ let create = async(req, res,next) => {
         status: req.body.status,
         name: req.body.name,
         client_role: req.body.client_role,
+        create :req.body.create,
+        update : req.body.update,
+        delete : req.body.delete,
         contact : req.body.contact,
         user_name : req.body.user_name
       
     };
     const validatedBody = schema.validate(client);
     const loggedInClient = await Client.findOne({ where : {client_id : req.client_id}});
-    
-    console.log("i am loggedInClient",loggedInClient);
+    console.log("i am req.body",req.body.e_mail);
+    const existedClient = await Client.findOne({ where : {e_mail : req.body.e_mail}});
+    console.log("i am existed client",existedClient);
+    if(existedClient){
+      return res.status(409).send({
+          
+        message : responseMessage.EMAIL_EXIST,error : false
+    });
+
+    }
+    else{
+    //console.log("i am loggedInClient",loggedInClient);
     const {dataValues} = loggedInClient;
     // Save Client in the database
     const passwordHash = await bcrypt.hash(req.body.password,10);
@@ -84,7 +109,8 @@ let create = async(req, res,next) => {
     client_role = parseInt(validatedBody.value.client_role);
     created_by = parseInt(validatedBody.value.created_by);
 
-    
+    if(validatedBody.value.create == '1')
+    {
     if (client_role > created_by)
     {
     Client.create(validatedBody.value)
@@ -104,7 +130,16 @@ let create = async(req, res,next) => {
     }
     else{
       throw apiError.conflict(responseMessage.ROLE_CONFLICT)
-    }  
+    } 
+  }
+  else{
+     return res.status(401).send({
+          
+      message : responseMessage.CREATING_NOT_ALLOWED,error : false
+  });
+
+  } 
+  }
   }
   catch(error) {
         return next(error)
@@ -141,7 +176,11 @@ let edit_created_client = async (req,res,next)=>{
   const validatedBody = schema.validate(client);
   validatedBody.client_id = req.body.client_id ;
   //console.log(e_mail,req.client_id,validatedBody.value);
-  const update = await Client.update({e_mail:validatedBody.value.e_mail,password : passwordHash,status : validatedBody.value.status,name : validatedBody.value.name,client_role : validatedBody.value.client_role,contact : validatedBody.value.contact,user_name : validatedBody.value.user_name},{ where : {client_id : req.body.client_id,creater_id : req.client_id }});
+  const loggedInClient = await Client.findOne({ where : {client_id : req.client_id}});
+  if(loggedInClient.value.update =="1")
+  {
+    const update = await Client.update({e_mail:validatedBody.value.e_mail,password : passwordHash,status : validatedBody.value.status,name : validatedBody.value.name,client_role : validatedBody.value.client_role,contact : validatedBody.value.contact,user_name : validatedBody.value.user_name},{ where : {client_id : req.body.client_id,creater_id : req.client_id }});
+  
   if(update){
     return res.status(200).json({ update : update , message : "updated",error : false})
 
@@ -150,8 +189,44 @@ let edit_created_client = async (req,res,next)=>{
     return res.status(404).json({ error : responseMessage.error ,error : true})
   }
 }
+else{
+  return res.status(401).json({message : responseMessage.UPDATING_NOT_ALLOWED,error : false})
+}
+}
 
+//Delete Client
+  
+let delete_client = async (req,res,next)=>{
  
+  const schema =  Joi.object({
+    
+    client_id : Joi.string()
+   })
+    const client = {
+      
+      client_id : req.body.client_id
+    
+  };
+  const validatedBody = schema.validate(client);
+  const loggedInClient = await Client.findOne({ where : {client_id : req.body.client_id}});
+  console.log(" I am loggedin client",loggedInClient);
+  if(loggedInClient.dataValues.delete =="1")
+  {
+    const delete_client = await Client.destroy({ where : {client_id : req.body.client_id,creater_id : req.client_id }});
+  
+  if(delete_client){
+    return res.status(200).json({ delete_client : delete_client , message : "deleted",error : false})
+
+  }
+  else{
+    return res.status(404).json({ error : responseMessage.error ,error : true})
+  }
+}
+else{
+  return res.status(401).json({message : responseMessage.DELETION_NOT_ALLOWED,error : false})
+}
+}
+
   
 
 
@@ -178,6 +253,7 @@ module.exports = {
     create : create,
     login: login,
     find_all_clients : find_all_clients,
-    edit_created_client : edit_created_client
+    edit_created_client : edit_created_client,
+    delete_client : delete_client
 
 }

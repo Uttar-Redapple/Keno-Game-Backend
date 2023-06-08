@@ -56,6 +56,19 @@ const Client = dataAPI.define('Client',{
         unique: true,
         default: "1234567890"
     },
+    create : {
+        type: Sequelize.ENUM,
+        values: ['0','1']
+
+    },
+    update : {
+        type: Sequelize.ENUM,
+        values: ['0','1']
+    },
+    delete : {
+        type: Sequelize.ENUM,
+        values: ['0','1']
+    },
     client_role: {
         type: Sequelize.ENUM,
         //values: [1,2,3,4,5,6,7,8]
@@ -71,20 +84,36 @@ const Client = dataAPI.define('Client',{
 }, {
     freezeTableName: true
   });
-// password is robin
+  Client.sync() ;
+(async () => {
+const result = await Client.findOne({where : { client_role: "1" }});
+//console.log("I am from model",result);
+  if (result) {
+    console.log("Default Admin 😀 .");
+  } else {
+    // password is robin
 
-let obj = {
-    client_id : "abc",       
-    e_mail: "robin@gmail.com",
-    password: "$2b$10$uIBURBUOxU3K.FssXuRbK..b/cVgqmhXibQuYojzHcm5yLgDMwFWe",
-    status: "active",
-    name: "Robin",
-    client_role: "1",
-    created_by: "1",
-    contact : "8744075567",
-    user_name : "robin123"
-};
+    let obj = {
+        client_id : "abc",       
+        e_mail: "robin@gmail.com",
+        password: "$2b$10$uIBURBUOxU3K.FssXuRbK..b/cVgqmhXibQuYojzHcm5yLgDMwFWe",
+        status: "active",
+        name: "Robin",
+        client_role: "1",
+        create : "1",
+        update : "1",
+        delete : "1",
+        created_by: "1",
+        contact : "8744075567",
+        user_name : "robin123"
+    };
+    
+    const created = await Client.create(obj); 
+    
+    if (created) {
+      console.log("DEFAULT ADMIN Created 😀 ", created);
+    }
+  }
+}).call();
 
-Client.create(obj);
-Client.sync() 
 module.exports = Client ;

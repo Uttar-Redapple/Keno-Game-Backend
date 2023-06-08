@@ -10,6 +10,7 @@
     "author": "uttar roy",
     "license": "ISC",
     "dependencies": {
+        "@hapi/joi": "^17.1.1",
         "@joi/date": "^2.1.0",
         "amqplib": "^0.10.3",
         "assert": "^2.0.0",
@@ -22,6 +23,7 @@
         "express": "^4.17.1",
         "firebase-admin": "^10.0.2",
         "joi": "^17.9.2",
+        "joi-password": "^4.1.1",
         "jsonwebtoken": "^8.5.1",
         "moment": "^2.29.3",
         "moment-timezone": "^0.5.34",
