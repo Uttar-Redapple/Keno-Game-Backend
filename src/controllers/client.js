@@ -178,7 +178,7 @@ let edit_created_client = async (req,res,next)=>{
   const schema =  Joi.object({
     //client_id: Joi.string().required(),
     
-    e_mail: Joi.string().regex(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/),
+    e_mail: Joi.string(),
     password: Joi.string(),
     status: Joi.string(),
     name: Joi.string(),
@@ -266,7 +266,7 @@ let find_all_clients = async (req,res,next)=>{
 
          const players = await Client.findAll({ where : {client_role : "7"}});
          console.log("players",players);
-         if (players){
+         if (players.length){
           return res.status(200).json({ client : client ,players : players, message : responseMessage.PLAYERS_FOUND,error : false});
 
          }

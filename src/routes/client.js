@@ -14,7 +14,7 @@ module.exports.setRouter = (app) => {
     app.get(`${baseUrl}/find_all_clients`, clientController.find_all_clients);
     app.post(`${baseUrl}/create`, clientController.create);
     app.post(`${baseUrl}/edit_created_client`,clientController.edit_created_client);
-    //app.post(`${baseUrl}/delete_client`,clientController.delete_client);
+    app.post(`${baseUrl}/delete_client`,clientController.delete_client);
     
     
 };
