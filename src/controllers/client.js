@@ -27,6 +27,7 @@ if(client){
   passwordMatch = await bcrypt.compare(req.body.password,client.password)
   
   console.log("i am inside login",req.body);
+  console.log("password match",passwordMatch);
    if(passwordMatch){
        token = jwt.sign({ "id" : client.client_id,"email" : client.e_mail},process.env.ENC_KEY);
        res.status(200).json({ message : resMessage.LOGIN_SUCCESS,token : token,error : false ,created_by : client.created_by,creater_id : client.creater_id,client_role : client.client_role,name : client.name});
@@ -91,7 +92,6 @@ let create = async(req, res,next) => {
     console.log("i am existed client",existedClient);
     const {dataValues} = loggedInClient;
     const existedClientByContactNo = await Client.findOne({ where : {contact : req.body.contact}});
-    const existedClientByName = await Client.findOne({ where : {name : req.body.e_mail}});
     const existedClientByUserName = await Client.findOne({ where : {user_name : req.body.user_name}});
     if(existedClient){
       return res.status(409).send({
@@ -108,12 +108,7 @@ let create = async(req, res,next) => {
     
 
     }
-    else if(existedClientByName){
-      return res.status(409).send({
-          
-        message : responseMessage.NAME_EXIST,error : true
-    });
-  }
+    
   else if(existedClientByUserName){
     return res.status(409).send({
         
@@ -177,7 +172,7 @@ let edit_created_client = async (req,res,next)=>{
  
   const schema =  Joi.object({
     //client_id: Joi.string().required(),
-    
+    client_id: Joi.string(),
     e_mail: Joi.string(),
     password: Joi.string(),
     status: Joi.string(),
@@ -187,6 +182,7 @@ let edit_created_client = async (req,res,next)=>{
     user_name : Joi.string()
    })
     const client = {
+      client_id : req.body.client_id,
       e_mail: req.body.e_mail,
       password: req.body.password,
       status: req.body.status,
@@ -198,15 +194,16 @@ let edit_created_client = async (req,res,next)=>{
   };
   const passwordHash = await bcrypt.hash(req.body.password,10);
   const validatedBody = schema.validate(client);
-  validatedBody.client_id = req.body.client_id ;
+  //validatedBody.client_id = req.body.client_id ;
   //console.log(e_mail,req.client_id,validatedBody.value);
   const loggedInClient = await Client.findOne({ where : {client_id : req.client_id}});
-  if(loggedInClient.value.update =="1")
+  console.log("I am loggedInClient from edit",loggedInClient);
+  if(loggedInClient.dataValues.update =="1")
   {
     const update = await Client.update({e_mail:validatedBody.value.e_mail,password : passwordHash,status : validatedBody.value.status,name : validatedBody.value.name,client_role : validatedBody.value.client_role,contact : validatedBody.value.contact,user_name : validatedBody.value.user_name},{ where : {client_id : req.body.client_id,creater_id : req.client_id }});
   
   if(update){
-    return res.status(200).json({ update : update , message : "updated",error : false})
+    return res.status(200).json({ update : update , message : responseMessage.CLIENT_UPDATED,error : false})
 
   }
   else{
@@ -232,19 +229,29 @@ let delete_client = async (req,res,next)=>{
     
   };
   const validatedBody = schema.validate(client);
-  const loggedInClient = await Client.findOne({ where : {client_id : req.body.client_id}});
+  const loggedInClient = await Client.findOne({ where : {client_id : req.client_id}});
+  console.log(" I am req.body.client_id",req.body.client_id);
   console.log(" I am loggedin client",loggedInClient);
+  const clientCheck = await Client.destroy({ where : {client_id : req.body.client_id,creater_id : req.client_id }});
   if(loggedInClient.dataValues.delete =="1")
   {
-    const delete_client = await Client.destroy({ where : {client_id : req.body.client_id,creater_id : req.client_id }});
-  
+    if(clientCheck){
+      {
+      const delete_client = await Client.destroy({ where : {client_id : req.body.client_id,creater_id : req.client_id }});
+      const delete_clien = await Client.destroy({ where : {creater_id : req.body.client_id }});
+      }
   if(delete_client){
-    return res.status(200).json({ delete_client : delete_client , message : "deleted",error : false})
+    return res.status(200).json({ delete_client : delete_client , message : responseMessage.CLIENT_DELETED,error : false})
 
   }
   else{
-    return res.status(404).json({ error : responseMessage.error ,error : true})
+    return res.status(404).json({ message : responseMessage.CLIENT_CANT_DELETED ,error : true})
   }
+}
+else{
+  return res.status(404).json({ message : responseMessage.CLIENT_DOES_NOT_EXIST ,error : true})
+
+}
 }
 else{
   return res.status(401).json({message : responseMessage.DELETION_NOT_ALLOWED,error : false})
