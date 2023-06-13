@@ -20,9 +20,11 @@ const { Op } = require("sequelize");
 let login = async (req, res, next) => {
   try {
     console.log("secretOrPrivateKey is ", process.env.ENC_KEY);
+    console.log("i am client", req.body.e_mail );
     const client = await Client.findOne({ where: { e_mail: req.body.e_mail } });
-    console.log("i am client", client);
-    console.log("i am client", client.dataValues.update);
+    
+    //console.log("i am client", client);
+    //console.log("i am client", client.dataValues.update);
     if (client) {
       if (client.dataValues.status == "active") {
         passwordMatch = await bcrypt.compare(
@@ -324,6 +326,8 @@ let delete_client = async (req, res, next) => {
 //Client list
 let find_all_clients = async (req, res, next) => {
   //console.log("i am from req.param ",req.body.client_role);
+  //const super_admin = await Client.findAll({where : {creater_id : req.client_id}})
+  //console.log("check me wheather I am a super admin",super_admin)
   const client = await Client.findAll({
     where: { creater_id: req.client_id, client_role: { [Op.ne]: "7" } },
   });
