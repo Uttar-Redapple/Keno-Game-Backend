@@ -94,12 +94,12 @@ Client.sync();
   if (result) {
     console.log("Default Admin 😀 .");
   } else {
-    // password is robin
-
+    // password is Robin@123
+    //$2b$10$o5WBfXsyPola0mKIg2LsAOhcyFuvJjMPOvX3pGQFm/OcDO/QGgd9i
     let obj = {
       client_id: "abc",
       e_mail: "robin@gmail.com",
-      password: "$2b$10$uIBURBUOxU3K.FssXuRbK..b/cVgqmhXibQuYojzHcm5yLgDMwFWe",
+      password: "$2b$10$o5WBfXsyPola0mKIg2LsAOhcyFuvJjMPOvX3pGQFm/OcDO/QGgd9i",
       status: "active",
       name: "Robin",
       client_role: "1",
