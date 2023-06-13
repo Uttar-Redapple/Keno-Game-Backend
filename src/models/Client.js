@@ -1,125 +1,122 @@
-'use strict'
+"use strict";
 /**
  * Module Dependencies
  */
-const { Sequelize, DataTypes } = require('sequelize');
-const {dataAPI} = require('../../www/db/db')
+const { Sequelize, DataTypes } = require("sequelize");
+const { dataAPI } = require("../../www/db/db");
 
-
-
-const Client = dataAPI.define('Client',{
-    client_id:{
-
-        // Integer Datatype
-        type:Sequelize.STRING,
-        // To uniquely identify user
-        primaryKey:true,
-        defaultValue: "111"
-     },
-     creater_id:{
-
-        // Integer Datatype
-        type:Sequelize.STRING,
-        defaultValue: "1"
-        
-     },
+const Client = dataAPI.define(
+  "Client",
+  {
+    client_id: {
+      // Integer Datatype
+      type: Sequelize.STRING,
+      // To uniquely identify user
+      primaryKey: true,
+      defaultValue: "111",
+    },
+    creater_id: {
+      // Integer Datatype
+      type: Sequelize.STRING,
+      defaultValue: "1",
+    },
     e_mail: {
-        type: Sequelize.STRING,
-        defaultValue: '',
-        unique: true,
-        default: "redApple@gmail.com"
+      type: Sequelize.STRING,
+      defaultValue: "",
+      unique: true,
+      default: "redApple@gmail.com",
     },
     password: {
-        type: Sequelize.STRING,
-        default: 'red',
-        unique: false
+      type: Sequelize.STRING,
+      default: "red",
+      unique: false,
     },
     amount: {
-        type: Sequelize.INTEGER
+      type: Sequelize.INTEGER,
     },
     withdrawn_amount: {
-        type: Sequelize.INTEGER
+      type: Sequelize.INTEGER,
     },
     balance: {
-        type: Sequelize.INTEGER
+      type: Sequelize.INTEGER,
     },
     status: {
-        type: Sequelize.STRING,
-        enum: ['active', 'inactive', 'deleted'],
-        default: 'active'
+      type: Sequelize.STRING,
+      enum: ["active", "inactive", "deleted"],
+      default: "active",
     },
-    name : {
-        type : Sequelize.STRING,
-        default: "redApple"
+    name: {
+      type: Sequelize.STRING,
+      default: "redApple",
     },
-    user_name : {
-        type : Sequelize.STRING,
-        unique: true,
-        default: "redApple123"
+    user_name: {
+      type: Sequelize.STRING,
+      unique: true,
+      default: "redApple123",
     },
-    contact : {
-        type : Sequelize.STRING,
-        unique: true,
-        default: "1234567890"
+    contact: {
+      type: Sequelize.STRING,
+      unique: true,
+      default: "1234567890",
     },
-    create : {
-        type: Sequelize.ENUM,
-        values: ['0','1']
-
+    create: {
+      type: Sequelize.ENUM,
+      values: ["0", "1"],
     },
-    update : {
-        type: Sequelize.ENUM,
-        values: ['0','1']
+    update: {
+      type: Sequelize.ENUM,
+      values: ["0", "1"],
     },
-    delete : {
-        type: Sequelize.ENUM,
-        values: ['0','1']
+    delete: {
+      type: Sequelize.ENUM,
+      values: ["0", "1"],
     },
     client_role: {
-        type: Sequelize.ENUM,
-        //values: [1,2,3,4,5,6,7,8]
-        values: ['1','2','3','4','5','6','7','8'],
-        defaultValue: "1"
-
+      type: Sequelize.ENUM,
+      //values: [1,2,3,4,5,6,7,8]
+      values: ["1", "2", "3", "4", "5", "6", "7", "8"],
+      defaultValue: "1",
     },
-    created_by:{
-        type: Sequelize.ENUM,
-        values: ['1','2','3','4','5','6'],
-        defaultValue: "1"
-    }
-}, {
-    freezeTableName: true
-  });
-  Client.sync() ;
+    created_by: {
+      type: Sequelize.ENUM,
+      values: ["1", "2", "3", "4", "5", "6"],
+      defaultValue: "1",
+    },
+  },
+  {
+    freezeTableName: true,
+  }
+);
+Client.sync();
 (async () => {
-const result = await Client.findOne({where : { client_role: "1" }});
-//console.log("I am from model",result);
+  const result = await Client.findOne({ where: { client_role: "1" } });
+  //console.log("I am from model",result);
   if (result) {
     console.log("Default Admin 😀 .");
   } else {
     // password is robin
 
     let obj = {
-        client_id : "abc",       
-        e_mail: "robin@gmail.com",
-        password: "$2b$10$uIBURBUOxU3K.FssXuRbK..b/cVgqmhXibQuYojzHcm5yLgDMwFWe",
-        status: "active",
-        name: "Robin",
-        client_role: "1",
-        create : "1",
-        update : "1",
-        delete : "1",
-        created_by: "1",
-        contact : "8744075567",
-        user_name : "robin123"
+      client_id: "abc",
+      e_mail: "robin@gmail.com",
+      password: "$2b$10$uIBURBUOxU3K.FssXuRbK..b/cVgqmhXibQuYojzHcm5yLgDMwFWe",
+      status: "active",
+      name: "Robin",
+      client_role: "1",
+      create: "1",
+      update: "1",
+      delete: "1",
+      created_by: "1",
+      contact: "8744075567",
+      user_name: "robin123",
     };
-    
-    const created = await Client.create(obj); 
-    
+
+    const created = await Client.create(obj);
+
     if (created) {
       console.log("DEFAULT ADMIN Created 😀 ", created);
     }
   }
 }).call();
 
-module.exports = Client ;
+module.exports = Client;

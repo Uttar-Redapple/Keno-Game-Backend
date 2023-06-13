@@ -6,5 +6,7 @@ module.exports = {
     5 :'supervisor',
     6 :'cashier',
     7 :'player',
-    8 :'game'
+    8 :'game',
+    9 :'add_amount',
+    10 : 'withdraw_amount'
 }
