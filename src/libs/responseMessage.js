@@ -20,6 +20,7 @@ module.exports = {
 	CLIENT_CANT_DELETED : 'Client cant get deleted',
 	CLIENT_DELETED : 'Client Deleted',
 	CLIENT_UPDATED : 'Client Updated',
+	CLIENT_NOT_UPDATED : 'Client could not get updated',
 	countryList: 'Country list',
 	stateList: 'State list',
 	OTP_SEND: 'OTP sent Successfully!',

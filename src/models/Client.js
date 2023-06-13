@@ -37,6 +37,12 @@ const Client = dataAPI.define('Client',{
     amount: {
         type: Sequelize.INTEGER
     },
+    withdrawn_amount: {
+        type: Sequelize.INTEGER
+    },
+    balance: {
+        type: Sequelize.INTEGER
+    },
     status: {
         type: Sequelize.STRING,
         enum: ['active', 'inactive', 'deleted'],

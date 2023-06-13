@@ -11,9 +11,13 @@ const routeLoggerMiddleware = require('./src/middlewares/routeLogger');
 const globalErrorMiddleware = require('./src/middlewares/appErrorHandler');
 const fs = require('fs');
 const path = require('path');
-
+var cors = require('cors')
 const app = express();
 const schemaPath = './src/models';
+
+
+
+app.use(cors())
 //Bootstrap models
 fs.readdirSync(schemaPath).forEach(function (file) {
   if (~file.indexOf('.js')) require(schemaPath + '/' + file)

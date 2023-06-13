@@ -12,6 +12,7 @@ const bcrypt = require('bcrypt');
 const resMessage = require('../libs/responseMessage');
 const responseMessage = require('../libs/responseMessage');
 const verifytoken = require("../libs/tokenLib");
+const {Op} = require('sequelize');
 //const Email = require('../libs/paramsValidationLib');
 
 
@@ -65,12 +66,13 @@ let create = async(req, res,next) => {
       password: Joi.string().required(),
       status: Joi.string().required(),
       name: Joi.string().required(),
-      client_role: Joi.number().required(),
+      client_role: Joi.string().required(),
       create : Joi.string().required(),
       update :  Joi.string().required(),
       delete :  Joi.string().required(),
       contact : Joi.string().required(),
-      user_name : Joi.string().required()
+      user_name : Joi.string().required(),
+      amount : Joi.string()
      })
       const client = {
         e_mail: req.body.e_mail,
@@ -82,11 +84,13 @@ let create = async(req, res,next) => {
         update : req.body.update,
         delete : req.body.delete,
         contact : req.body.contact,
-        user_name : req.body.user_name
+        user_name : req.body.user_name,
+        amount : req.body.amount
       
     };
     const validatedBody = schema.validate(client);
     const loggedInClient = await Client.findOne({ where : {client_id : req.client_id}});
+    console.log("logged in client",loggedInClient.dataValues.create);
     console.log("i am req.body",req.body.e_mail);
     const existedClient = await Client.findOne({ where : {e_mail : req.body.e_mail}});
     console.log("i am existed client",existedClient);
@@ -128,7 +132,7 @@ let create = async(req, res,next) => {
     client_role = parseInt(validatedBody.value.client_role);
     created_by = parseInt(validatedBody.value.created_by);
 
-    if(validatedBody.value.create == '1')
+    if(loggedInClient.dataValues.create == '1')
     {
     if (client_role > created_by)
     {
@@ -177,9 +181,13 @@ let edit_created_client = async (req,res,next)=>{
     password: Joi.string(),
     status: Joi.string(),
     name: Joi.string(),
-    client_role: Joi.number(),
+    client_role: Joi.string(),
     contact : Joi.string(),
-    user_name : Joi.string()
+    user_name : Joi.string(),
+    create : Joi.string(),
+    update : Joi.string(),
+    delete : Joi.string(),
+    withdrawn_amount : Joi.string()
    })
     const client = {
       client_id : req.body.client_id,
@@ -189,7 +197,11 @@ let edit_created_client = async (req,res,next)=>{
       name: req.body.name,
       client_role: req.body.client_role,
       contact : req.body.contact,
-      user_name : req.body.user_name
+      user_name : req.body.user_name,
+      create : req.body.create,
+      update : req.body.update,
+      delete : req.body.delete,
+      withdrawn_amount : req.body.withdrawn_amount
     
   };
   const passwordHash = await bcrypt.hash(req.body.password,10);
@@ -197,18 +209,31 @@ let edit_created_client = async (req,res,next)=>{
   //validatedBody.client_id = req.body.client_id ;
   //console.log(e_mail,req.client_id,validatedBody.value);
   const loggedInClient = await Client.findOne({ where : {client_id : req.client_id}});
-  console.log("I am loggedInClient from edit",loggedInClient);
+  console.log("I am loggedInClient from edit",validatedBody);
   if(loggedInClient.dataValues.update =="1")
   {
-    const update = await Client.update({e_mail:validatedBody.value.e_mail,password : passwordHash,status : validatedBody.value.status,name : validatedBody.value.name,client_role : validatedBody.value.client_role,contact : validatedBody.value.contact,user_name : validatedBody.value.user_name},{ where : {client_id : req.body.client_id,creater_id : req.client_id }});
+    const update = await Client.update({e_mail:validatedBody.value.e_mail,password : passwordHash,status : validatedBody.value.status,name : validatedBody.value.name,client_role : validatedBody.value.client_role,create : validatedBody.value.create,update : validatedBody.value.update,delete : validatedBody.value.delete,contact : validatedBody.value.contact,user_name : validatedBody.value.user_name},{ where : {client_id : req.body.client_id,creater_id : req.client_id }})
+    .then(data => {
+      res.status(200).send({
+        
+          data :data, message : responseMessage.CLIENT_UPDATED,error : false
+          
+      });
+    })
+    .catch(err => {
+      res.status(500).send({
+        message:
+          err.message || responseMessage.CLIENT_NOT_UPDATED,error : true
+      });
+    });
   
-  if(update){
-    return res.status(200).json({ update : update , message : responseMessage.CLIENT_UPDATED,error : false})
+  // if(update){
+  //   return res.status(200).json({ update : update , message : responseMessage.CLIENT_UPDATED,error : false})
 
-  }
-  else{
-    return res.status(404).json({ error : responseMessage.error ,error : true})
-  }
+  // }
+  // else{
+  //   return res.status(404).json({ error : responseMessage.error ,error : true})
+  // }
 }
 else{
   return res.status(401).json({message : responseMessage.UPDATING_NOT_ALLOWED,error : true})
@@ -241,7 +266,7 @@ let delete_client = async (req,res,next)=>{
       const delete_clien = await Client.destroy({ where : {creater_id : req.body.client_id }});
       }
   if(delete_client){
-    return res.status(200).json({ delete_client : delete_client , message : responseMessage.CLIENT_DELETED,error : false})
+    return res.status(200).json({ "delete_client" : delete_client , message : responseMessage.CLIENT_DELETED,error : false})
 
   }
   else{
@@ -266,7 +291,7 @@ else{
 let find_all_clients = async (req,res,next)=>{
 
   //console.log("i am from req.param ",req.body.client_role);
-  const client = await Client.findAll({ where : {creater_id : req.client_id}});
+  const client = await Client.findAll({ where : {creater_id : req.client_id,client_role : {[Op.ne] : '7'}}});
   console.log("we are existing clients",client);
   
   if(client.length){
