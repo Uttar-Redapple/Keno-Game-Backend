@@ -20,9 +20,9 @@ const { Op } = require("sequelize");
 let login = async (req, res, next) => {
   try {
     console.log("secretOrPrivateKey is ", process.env.ENC_KEY);
-    console.log("i am client", req.body.e_mail );
+    console.log("i am client", req.body.e_mail);
     const client = await Client.findOne({ where: { e_mail: req.body.e_mail } });
-    
+
     //console.log("i am client", client);
     //console.log("i am client", client.dataValues.update);
     if (client) {
@@ -77,15 +77,24 @@ let create = async (req, res, next) => {
 
   try {
     console.log("I am req", req.body);
+    const strongPasswordRegex =
+      /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/;
+    const stringPassswordError = new Error(
+      "Password must be strong. At least one upper case alphabet. At least one lower case alphabet. At least one digit. At least one special character. Minimum eight in length"
+    );
+
     //const e_mail_pattern = "/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/";
     //const password_pattern = "/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/";
     const schema = Joi.object({
       //client_id: Joi.string().required(),
-
-      e_mail: Joi.string()
+      password: Joi.string()
         .required()
-        .regex(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/),
-      password: Joi.string().required(),
+        .regex(/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,10}$/),
+      email: Joi.string().email({
+        minDomainSegments: 2,
+        tlds: { allow: ["com", "net"] },
+      }),
+
       status: Joi.string().required(),
       name: Joi.string().required(),
       client_role: Joi.string().required(),
@@ -109,7 +118,10 @@ let create = async (req, res, next) => {
       user_name: req.body.user_name,
       amount: req.body.amount,
     };
+
     const validatedBody = schema.validate(client);
+    console.log("i am validated body", validatedBody);
+
     const loggedInClient = await Client.findOne({
       where: { client_id: req.client_id },
     });
@@ -150,26 +162,37 @@ let create = async (req, res, next) => {
       validatedBody.value.client_id = clientId;
       validatedBody.value.creater_id = req.client_id;
       validatedBody.value.created_by = dataValues.client_role;
+      console.log(
+        "I am the data type of created_by",
+        typeof dataValues.client_role
+      );
       console.log("client data", validatedBody.value);
       client_role = parseInt(validatedBody.value.client_role);
       created_by = parseInt(validatedBody.value.created_by);
 
       if (loggedInClient.dataValues.create == "1") {
         if (client_role > created_by) {
-          Client.create(validatedBody.value)
-            .then((data) => {
-              res.status(200).send({
-                data: data,
-                message: responseMessage.CLIENT_CREATED,
-                error: false,
+          if (!validatedBody.error) {
+            Client.create(validatedBody.value)
+              .then((data) => {
+                res.status(200).send({
+                  data: data,
+                  message: responseMessage.CLIENT_CREATED,
+                  error: false,
+                });
+              })
+              .catch((err) => {
+                res.status(500).send({
+                  message: err.message || responseMessage.CLIENT_NOT_CREATED,
+                  error: true,
+                });
               });
-            })
-            .catch((err) => {
-              res.status(500).send({
-                message: err.message || responseMessage.CLIENT_NOT_CREATED,
-                error: true,
-              });
+          } else {
+            res.status(400).send({
+              message: validatedBody.error.details[0].message,
+              error: true,
             });
+          }
         } else {
           return res.status(409).send({
             message: responseMessage.ROLE_CONFLICT,
@@ -328,25 +351,29 @@ let find_all_clients = async (req, res, next) => {
   //console.log("i am from req.param ",req.body.client_role);
   //const super_admin = await Client.findAll({where : {creater_id : req.client_id}})
   //console.log("check me wheather I am a super admin",super_admin)
-  const client = await Client.findAll({
-    where: { creater_id: req.client_id, client_role: { [Op.ne]: "7" } },
-  });
-  console.log("we are existing clients", client);
 
+  //console.log("we are existing clients", client);
+  console.log("i am client_id form find all", req.client_id);
+  const client = await Client.findAll({ where: { creater_id: req.client_id } });
   if (client.length) {
-    const players = await Client.findAll({ where: { client_role: "7" } });
+    const allClient = await Client.findAll({
+      where: { creater_id: req.client_id, client_role: { [Op.ne]: "7" } },
+    });
+    const players = await Client.findAll({
+      creater_id: req.client_id,
+      where: { creater_id: req.client_id, client_role: "7" },
+    });
     console.log("players", players);
     if (players.length) {
       return res.status(200).json({
-        client: client,
         players: players,
         message: responseMessage.PLAYERS_FOUND,
         error: false,
       });
     } else {
       return res.status(200).json({
-        client: client,
-        players: players,
+        client: allClient,
+
         message: responseMessage.NO_PLAYERS,
         error: false,
       });
