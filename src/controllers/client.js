@@ -89,11 +89,8 @@ let create = async (req, res, next) => {
       //client_id: Joi.string().required(),
       password: Joi.string()
         .required()
-        .regex(/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,10}$/),
-      email: Joi.string().email({
-        minDomainSegments: 2,
-        tlds: { allow: ["com", "net"] },
-      }),
+        .regex(/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{10,18}$/),
+      e_mail: Joi.string().required().regex(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/),
 
       status: Joi.string().required(),
       name: Joi.string().required(),
@@ -366,6 +363,7 @@ let find_all_clients = async (req, res, next) => {
     console.log("players", players);
     if (players.length) {
       return res.status(200).json({
+        client : allClient,
         players: players,
         message: responseMessage.PLAYERS_FOUND,
         error: false,
