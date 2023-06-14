@@ -21,11 +21,14 @@ let login = async (req, res, next) => {
   try {
     console.log("secretOrPrivateKey is ", process.env.ENC_KEY);
     console.log("i am client", req.body.e_mail);
-    const client = await Client.findOne({ where: { e_mail: req.body.e_mail } });
+    const client = await Client.findOne({ where: { e_mail: req.body.e_mail }});
 
-    //console.log("i am client", client);
+    console.log("i am client", client);
     //console.log("i am client", client.dataValues.update);
     if (client) {
+      if(client.client_role !=="7")
+      {
+
       if (client.dataValues.status == "active") {
         passwordMatch = await bcrypt.compare(
           req.body.password,
@@ -61,6 +64,13 @@ let login = async (req, res, next) => {
           .status(409)
           .json({ message: resMessage.CLIENT_IS_NOT_ACTIVE, error: true });
       }
+    }
+    else{
+      res
+          .status(409)
+          .json({ message: resMessage.PLAYER_CANT_LOGIN, error: true });
+
+    }
     } else {
       res
         .status(404)
@@ -89,8 +99,8 @@ let create = async (req, res, next) => {
       //client_id: Joi.string().required(),
       password: Joi.string()
         .required()
-        .regex(/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{10,18}$/),
-      e_mail: Joi.string().required().regex(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/),
+        .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[!@#$%^&*])(?=.*[A-Z]).{10,18}$/),
+      e_mail: Joi.string().email().required(),
 
       status: Joi.string().required(),
       name: Joi.string().required(),
