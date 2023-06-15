@@ -21,56 +21,52 @@ let login = async (req, res, next) => {
   try {
     console.log("secretOrPrivateKey is ", process.env.ENC_KEY);
     console.log("i am client", req.body.e_mail);
-    const client = await Client.findOne({ where: { e_mail: req.body.e_mail }});
+    const client = await Client.findOne({ where: { e_mail: req.body.e_mail } });
 
     console.log("i am client", client);
     //console.log("i am client", client.dataValues.update);
     if (client) {
-      if(client.client_role !=="7")
-      {
-
-      if (client.dataValues.status == "active") {
-        passwordMatch = await bcrypt.compare(
-          req.body.password,
-          client.password
-        );
-
-        console.log("i am inside login", req.body);
-        console.log("password match", passwordMatch);
-        if (passwordMatch) {
-          token = jwt.sign(
-            { id: client.client_id, email: client.e_mail },
-            process.env.ENC_KEY
+      if (client.client_role !== "7") {
+        if (client.dataValues.status == "active") {
+          passwordMatch = await bcrypt.compare(
+            req.body.password,
+            client.password
           );
-          res.status(200).json({
-            message: resMessage.LOGIN_SUCCESS,
-            token: token,
-            error: false,
-            created_by: client.created_by,
-            creater_id: client.creater_id,
-            client_role: client.client_role,
-            name: client.name,
-            create: client.create,
-            update: client.dataValues.update,
-            delete: client.delete,
-          });
+
+          console.log("i am inside login", req.body);
+          console.log("password match", passwordMatch);
+          if (passwordMatch) {
+            token = jwt.sign(
+              { id: client.client_id, email: client.e_mail },
+              process.env.ENC_KEY
+            );
+            res.status(200).json({
+              message: resMessage.LOGIN_SUCCESS,
+              token: token,
+              error: false,
+              created_by: client.created_by,
+              creater_id: client.creater_id,
+              client_role: client.client_role,
+              name: client.name,
+              create: client.create,
+              update: client.dataValues.update,
+              delete: client.delete,
+            });
+          } else {
+            res
+              .status(400)
+              .json({ message: resMessage.PASSWORD_INCORRECT, error: true });
+          }
         } else {
           res
-            .status(400)
-            .json({ message: resMessage.PASSWORD_INCORRECT, error: true });
+            .status(409)
+            .json({ message: resMessage.CLIENT_IS_NOT_ACTIVE, error: true });
         }
       } else {
         res
           .status(409)
-          .json({ message: resMessage.CLIENT_IS_NOT_ACTIVE, error: true });
-      }
-    }
-    else{
-      res
-          .status(409)
           .json({ message: resMessage.PLAYER_CANT_LOGIN, error: true });
-
-    }
+      }
     } else {
       res
         .status(404)
@@ -87,28 +83,23 @@ let create = async (req, res, next) => {
 
   try {
     console.log("I am req", req.body);
-    const strongPasswordRegex =
-      /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/;
-    const stringPassswordError = new Error(
-      "Password must be strong. At least one upper case alphabet. At least one lower case alphabet. At least one digit. At least one special character. Minimum eight in length"
-    );
 
-    //const e_mail_pattern = "/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/";
-    //const password_pattern = "/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/";
     const schema = Joi.object({
       //client_id: Joi.string().required(),
       password: Joi.string()
         .required()
         .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[!@#$%^&*])(?=.*[A-Z]).{10,18}$/),
       e_mail: Joi.string().email().required(),
-
       status: Joi.string().required(),
       name: Joi.string().required(),
       client_role: Joi.string().required(),
       create: Joi.string().required(),
       update: Joi.string().required(),
       delete: Joi.string().required(),
-      contact: Joi.string().required(),
+      contact: Joi.string()
+        .length(10)
+        .pattern(/^[0-9]+$/)
+        .required(),
       user_name: Joi.string().required(),
       amount: Joi.string(),
     });
@@ -287,14 +278,6 @@ let edit_created_client = async (req, res, next) => {
           error: true,
         });
       });
-
-    // if(update){
-    //   return res.status(200).json({ update : update , message : responseMessage.CLIENT_UPDATED,error : false})
-
-    // }
-    // else{
-    //   return res.status(404).json({ error : responseMessage.error ,error : true})
-    // }
   } else {
     return res
       .status(401)
@@ -355,43 +338,65 @@ let delete_client = async (req, res, next) => {
 
 //Client list
 let find_all_clients = async (req, res, next) => {
-  //console.log("i am from req.param ",req.body.client_role);
-  //const super_admin = await Client.findAll({where : {creater_id : req.client_id}})
-  //console.log("check me wheather I am a super admin",super_admin)
-
-  //console.log("we are existing clients", client);
-  console.log("i am client_id form find all", req.client_id);
-  const client = await Client.findAll({ where: { creater_id: req.client_id } });
-  if (client.length) {
-    const allClient = await Client.findAll({
-      where: { creater_id: req.client_id, client_role: { [Op.ne]: "7" } },
+ 
+  const superUser = await Client.findOne({
+    where: { client_id: req.client_id },
+  });
+  console.log("superUser", superUser);
+  const findAll = await Client.findAll();
+  console.log("i am client_id form find all", findAll);
+  console.log("superUser.dataValues.client_id", superUser.dataValues.client_id);
+  if (superUser.dataValues.client_id == "abc") {
+    console.log("vbjjgfggh");
+    const allClient = await Client.findAndCountAll({
+      where: { client_role: { [Op.ne]: "7" } },
     });
-    const players = await Client.findAll({
+    const players = await Client.findAndCountAll({
       creater_id: req.client_id,
-      where: { creater_id: req.client_id, client_role: "7" },
+      where: { client_role: "7" },
     });
-    console.log("players", players);
-    if (players.length) {
-      return res.status(200).json({
-        client : allClient,
-        players: players,
-        message: responseMessage.PLAYERS_FOUND,
-        error: false,
-      });
-    } else {
-      return res.status(200).json({
-        client: allClient,
-
-        message: responseMessage.NO_PLAYERS,
-        error: false,
-      });
-    }
+    return res.status(200).json({
+      client: allClient,
+      players: players,
+      error: false
+    });
   } else {
-    return res
-      .status(404)
-      .json({ message: responseMessage.NO_CLIENT_EXIST, error: true });
+    const client = await Client.findAll({
+      where: { creater_id: req.client_id },
+    });
+
+    if (client.length) {
+      const allClient = await Client.findAll({
+        where: { creater_id: req.client_id, client_role: { [Op.ne]: "7" } },
+      });
+      const players = await Client.findAll({
+        creater_id: req.client_id,
+        where: { creater_id: req.client_id, client_role: "7" },
+      });
+      //console.log("players", players);
+      if (players.length) {
+        return res.status(200).json({
+          client: allClient,
+          players: players,
+          message: responseMessage.PLAYERS_FOUND,
+          error: false,
+        });
+      } else {
+        return res.status(200).json({
+          client: allClient,
+
+          message: responseMessage.NO_PLAYERS,
+          error: false,
+        });
+      }
+    } else {
+      return res
+        .status(404)
+        .json({ message: responseMessage.NO_CLIENT_EXIST, error: true });
+    }
   }
 };
+
 module.exports = {
   create: create,
   login: login,
