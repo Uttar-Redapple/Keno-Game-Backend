@@ -13,6 +13,8 @@ const resMessage = require("../libs/responseMessage");
 const responseMessage = require("../libs/responseMessage");
 const verifytoken = require("../libs/tokenLib");
 const { Op } = require("sequelize");
+const rngClass = require('../algo/rng');
+const {init_genrand,genrand_int32} = rngClass;
 //const Email = require('../libs/paramsValidationLib');
 
 //const response = require('../libs/response');
@@ -152,7 +154,7 @@ let create = async (req, res, next) => {
         error: true,
       });
     } else {
-      //console.log("i am loggedInClient",loggedInClient);
+    
 
       // Save Client in the database
       const passwordHash = await bcrypt.hash(req.body.password, 10);
@@ -300,7 +302,7 @@ let delete_client = async (req, res, next) => {
   });
   console.log(" I am req.body.client_id", req.body.client_id);
   console.log(" I am loggedin client", loggedInClient);
-  const clientCheck = await Client.destroy({
+  const clientCheck = await Client.findOne({
     where: { client_id: req.body.client_id, creater_id: req.client_id },
   });
   if (loggedInClient.dataValues.delete == "1") {
@@ -309,10 +311,8 @@ let delete_client = async (req, res, next) => {
         const delete_client = await Client.destroy({
           where: { client_id: req.body.client_id, creater_id: req.client_id },
         });
-        const delete_clien = await Client.destroy({
-          where: { creater_id: req.body.client_id },
-        });
-      }
+        
+      
       if (delete_client) {
         return res.status(200).json({
           delete_client: delete_client,
@@ -324,7 +324,7 @@ let delete_client = async (req, res, next) => {
           .status(404)
           .json({ message: responseMessage.CLIENT_CANT_DELETED, error: true });
       }
-    } else {
+    }} else {
       return res
         .status(404)
         .json({ message: responseMessage.CLIENT_DOES_NOT_EXIST, error: true });
@@ -342,18 +342,18 @@ let find_all_clients = async (req, res, next) => {
   const superUser = await Client.findOne({
     where: { client_id: req.client_id },
   });
-  console.log("superUser", superUser);
+  //console.log("superUser", superUser);
   const findAll = await Client.findAll();
-  console.log("i am client_id form find all", findAll);
-  console.log("superUser.dataValues.client_id", superUser.dataValues.client_id);
+  //console.log("i am client_id form find all", findAll);
+  //console.log("superUser.dataValues.client_id", superUser.dataValues.client_id);
   if (superUser.dataValues.client_id == "abc") {
-    console.log("vbjjgfggh");
+    //console.log("vbjjgfggh");
     const allClient = await Client.findAndCountAll({
-      where: { client_role: { [Op.ne]: "7" } },
+      where: { client_role: { [Op.ne]: "7"} },
     });
     const players = await Client.findAndCountAll({
       creater_id: req.client_id,
-      where: { client_role: "7" },
+      where: { client_role: "7",client_id :{ [Op.ne]: "abc"} },
     });
     return res.status(200).json({
       client: allClient,
@@ -364,16 +364,17 @@ let find_all_clients = async (req, res, next) => {
     const client = await Client.findAll({
       where: { creater_id: req.client_id },
     });
-
+       console.log ("I am client",client);
     if (client.length) {
-      const allClient = await Client.findAll({
+      const allClient = await Client.findAndCountAll({
         where: { creater_id: req.client_id, client_role: { [Op.ne]: "7" } },
       });
-      const players = await Client.findAll({
+      const players = await Client.findAndCountAll({
         creater_id: req.client_id,
         where: { creater_id: req.client_id, client_role: "7" },
       });
-      //console.log("players", players);
+      
+      console.log("players", players);
       if (players.length) {
         return res.status(200).json({
           client: allClient,
@@ -384,7 +385,7 @@ let find_all_clients = async (req, res, next) => {
       } else {
         return res.status(200).json({
           client: allClient,
-
+          players: players,
           message: responseMessage.NO_PLAYERS,
           error: false,
         });
@@ -397,10 +398,13 @@ let find_all_clients = async (req, res, next) => {
   }
 };
 
+
+
 module.exports = {
   create: create,
   login: login,
   find_all_clients: find_all_clients,
   edit_created_client: edit_created_client,
   delete_client: delete_client,
+  
 };
