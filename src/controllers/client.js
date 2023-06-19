@@ -13,8 +13,8 @@ const resMessage = require("../libs/responseMessage");
 const responseMessage = require("../libs/responseMessage");
 const verifytoken = require("../libs/tokenLib");
 const { Op } = require("sequelize");
-const rngClass = require('../algo/rng');
-const {init_genrand,genrand_int32} = rngClass;
+const rngClass = require("../algo/rng");
+const { init_genrand, genrand_int32 } = rngClass;
 //const Email = require('../libs/paramsValidationLib');
 
 //const response = require('../libs/response');
@@ -99,7 +99,8 @@ let create = async (req, res, next) => {
       update: Joi.string().required(),
       delete: Joi.string().required(),
       contact: Joi.string()
-        .length(10)
+        .min(10)
+        .max(13)
         .pattern(/^[0-9]+$/)
         .required(),
       user_name: Joi.string().required(),
@@ -154,8 +155,6 @@ let create = async (req, res, next) => {
         error: true,
       });
     } else {
-    
-
       // Save Client in the database
       const passwordHash = await bcrypt.hash(req.body.password, 10);
       validatedBody.value.password = passwordHash;
@@ -214,6 +213,13 @@ let create = async (req, res, next) => {
 //edit_created_client
 
 let edit_created_client = async (req, res, next) => {
+  const loggedInClient = await Client.findOne({
+    where: { client_id: req.client_id },
+  });
+  //console.log("I am loggedInClient from edit", validatedBody);
+  const superAdminClientCheck = await Client.findOne({
+    where: { client_role: "1" }
+  });
   const schema = Joi.object({
     //client_id: Joi.string().required(),
     client_id: Joi.string(),
@@ -245,13 +251,8 @@ let edit_created_client = async (req, res, next) => {
   };
   const passwordHash = await bcrypt.hash(req.body.password, 10);
   const validatedBody = schema.validate(client);
-  //validatedBody.client_id = req.body.client_id ;
-  //console.log(e_mail,req.client_id,validatedBody.value);
-  const loggedInClient = await Client.findOne({
-    where: { client_id: req.client_id },
-  });
-  console.log("I am loggedInClient from edit", validatedBody);
-  if (loggedInClient.dataValues.update == "1") {
+  
+  if (superAdminClientCheck) {
     const updatee = await Client.update(
       {
         e_mail: validatedBody.value.e_mail,
@@ -265,25 +266,60 @@ let edit_created_client = async (req, res, next) => {
         contact: validatedBody.value.contact,
         user_name: validatedBody.value.user_name,
       },
-      { where: { client_id: req.body.client_id, creater_id: req.client_id } }
-    )
-      .then((data) => {
-        res.status(200).send({
-          data: data,
-          message: responseMessage.CLIENT_UPDATED,
-          error: false,
-        });
-      })
-      .catch((err) => {
-        res.status(500).send({
-          message: err.message || responseMessage.CLIENT_NOT_UPDATED,
-          error: true,
-        });
+      { where: { client_id: req.body.client_id } }
+    ).then((data) => {
+      res.status(200).send({
+        data: data,
+        message: responseMessage.CLIENT_UPDATED,
+        error: false,
       });
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: err.message || responseMessage.CLIENT_NOT_UPDATED,
+        error: true,
+      });
+    });
+    
+  
   } else {
-    return res
-      .status(401)
-      .json({ message: responseMessage.UPDATING_NOT_ALLOWED, error: true });
+    
+    if (
+      loggedInClient.dataValues.update == "1"
+    ) {
+      const updatee = await Client.update(
+        {
+          e_mail: validatedBody.value.e_mail,
+          password: passwordHash,
+          status: validatedBody.value.status,
+          name: validatedBody.value.name,
+          client_role: validatedBody.value.client_role,
+          create: validatedBody.value.create,
+          update: validatedBody.value.update,
+          delete: validatedBody.value.delete,
+          contact: validatedBody.value.contact,
+          user_name: validatedBody.value.user_name,
+        },
+        { where: { client_id: req.body.client_id, creater_id: req.client_id } }
+      )
+        .then((data) => {
+          res.status(200).send({
+            data: data,
+            message: responseMessage.CLIENT_UPDATED,
+            error: false,
+          });
+        })
+        .catch((err) => {
+          res.status(500).send({
+            message: err.message || responseMessage.CLIENT_NOT_UPDATED,
+            error: true,
+          });
+        });
+    } else {
+      return res
+        .status(401)
+        .json({ message: responseMessage.UPDATING_NOT_ALLOWED, error: true });
+    }
   }
 };
 
@@ -302,43 +338,71 @@ let delete_client = async (req, res, next) => {
   });
   console.log(" I am req.body.client_id", req.body.client_id);
   console.log(" I am loggedin client", loggedInClient);
-  const clientCheck = await Client.findOne({
-    where: { client_id: req.body.client_id, creater_id: req.client_id },
+  console.log(" I am sup admin check", loggedInClient.dataValues.client_role);
+  const superAdminClientCheck = await Client.findOne({
+    where: { client_role: "1" },
   });
-  if (loggedInClient.dataValues.delete == "1") {
-    if (clientCheck) {
-      {
-        const delete_client = await Client.destroy({
-          where: { client_id: req.body.client_id, creater_id: req.client_id },
-        });
-        
-      
-      if (delete_client) {
-        return res.status(200).json({
-          delete_client: delete_client,
-          message: responseMessage.CLIENT_DELETED,
-          error: false,
-        });
-      } else {
-        return res
-          .status(404)
-          .json({ message: responseMessage.CLIENT_CANT_DELETED, error: true });
-      }
-    }} else {
-      return res
-        .status(404)
-        .json({ message: responseMessage.CLIENT_DOES_NOT_EXIST, error: true });
-    }
+
+  if (superAdminClientCheck) {
+    const delete_client = await Client.destroy({
+          where: { client_id: req.body.client_id },
+        }) .then((data) => {
+      res.status(200).send({
+        data: data,
+        message: responseMessage.CLIENT_DELETED,
+        error: false,
+      });
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: err.message ||responseMessage.CLIENT_CANT_DELETED,
+        error: true,
+      });
+    });
+ 
   } else {
-    return res
-      .status(401)
-      .json({ message: responseMessage.DELETION_NOT_ALLOWED, error: false });
+    const clientCheck = await Client.findOne({
+      where: { client_id: req.body.client_id, creater_id: req.client_id },
+    });
+    if (
+      loggedInClient.dataValues.client_role == "1" ||
+      loggedInClient.dataValues.delete == "1"
+    ) {
+      if (clientCheck) {
+        {
+          const delete_client = await Client.destroy({
+            where: { client_id: req.body.client_id, creater_id: req.client_id },
+          });
+
+          if (delete_client) {
+            return res.status(200).json({
+              delete_client: delete_client,
+              message: responseMessage.CLIENT_DELETED,
+              error: false,
+            });
+          } else {
+            return res.status(404).json({
+              message: responseMessage.CLIENT_CANT_DELETED,
+              error: true,
+            });
+          }
+        }
+      } else {
+        return res.status(404).json({
+          message: responseMessage.CLIENT_DOES_NOT_EXIST,
+          error: true,
+        });
+      }
+    } else {
+      return res
+        .status(401)
+        .json({ message: responseMessage.DELETION_NOT_ALLOWED, error: false });
+    }
   }
 };
 
 //Client list
 let find_all_clients = async (req, res, next) => {
- 
   const superUser = await Client.findOne({
     where: { client_id: req.client_id },
   });
@@ -347,33 +411,44 @@ let find_all_clients = async (req, res, next) => {
   //console.log("i am client_id form find all", findAll);
   //console.log("superUser.dataValues.client_id", superUser.dataValues.client_id);
   if (superUser.dataValues.client_id == "abc") {
-    //console.log("vbjjgfggh");
+    
     const allClient = await Client.findAndCountAll({
-      where: { client_role: { [Op.ne]: "7"} },
+      where: {
+        [Op.and]: [
+          { client_role: { [Op.ne]: "7" } },
+          { creater_id: { [Op.ne]: "1" } },
+        ],
+      },
     });
     const players = await Client.findAndCountAll({
       creater_id: req.client_id,
-      where: { client_role: "7",client_id :{ [Op.ne]: "abc"} },
+      where: { client_role: "7" },
     });
     return res.status(200).json({
       client: allClient,
       players: players,
-      error: false
+      error: false,
     });
   } else {
     const client = await Client.findAll({
       where: { creater_id: req.client_id },
     });
-       console.log ("I am client",client);
+    console.log("I am client", client);
     if (client.length) {
       const allClient = await Client.findAndCountAll({
-        where: { creater_id: req.client_id, client_role: { [Op.ne]: "7" } },
+        where: {
+          creater_id: req.client_id,
+          [Op.and]: [
+            { client_role: { [Op.ne]: "7" } },
+            { creater_id: { [Op.ne]: "1" } },
+          ],
+        },
       });
       const players = await Client.findAndCountAll({
         creater_id: req.client_id,
         where: { creater_id: req.client_id, client_role: "7" },
       });
-      
+
       console.log("players", players);
       if (players.length) {
         return res.status(200).json({
@@ -398,13 +473,10 @@ let find_all_clients = async (req, res, next) => {
   }
 };
 
-
-
 module.exports = {
   create: create,
   login: login,
   find_all_clients: find_all_clients,
   edit_created_client: edit_created_client,
   delete_client: delete_client,
-  
 };

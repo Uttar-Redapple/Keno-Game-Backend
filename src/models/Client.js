@@ -85,6 +85,10 @@ const Client = dataAPI.define(
   },
   {
     freezeTableName: true,
+    paranoid : true,
+    soft_delete : 'soft_delete',
+    created_at : 'created_at',
+    modified_at : 'modified_at'
   }
 );
 Client.sync();
