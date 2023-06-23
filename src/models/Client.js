@@ -4,6 +4,7 @@
  */
 const { Sequelize, DataTypes } = require("sequelize");
 const { dataAPI } = require("../../www/db/db");
+const { INTEGER } = require("sequelize");
 
 const Client = dataAPI.define(
   "Client",
@@ -30,6 +31,12 @@ const Client = dataAPI.define(
       type: Sequelize.STRING,
       default: "red",
       unique: false,
+    },
+    otp: {
+      type: Sequelize.INTEGER,
+    },
+    otp_time: {
+      type: Sequelize.INTEGER,
     },
     amount: {
       type: Sequelize.INTEGER,
