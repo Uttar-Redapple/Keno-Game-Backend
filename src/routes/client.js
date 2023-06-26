@@ -10,6 +10,8 @@ module.exports.setRouter = (app) => {
   app.post(`${baseUrl}/login`, clientController.login);
   app.post(`${baseUrl}/players_login`, clientController.players_login);
   app.post(`${baseUrl}/other_role_login`, clientController.other_role_login);
+  app.post(`${baseUrl}/verify_phno`, clientController.verify_phno);
+  app.post(`${baseUrl}/verify_otp`, clientController.verify_otp);
   app.use(auth.verifyToken);
   
   app.get(`${baseUrl}/find_all_clients`, clientController.find_all_clients);

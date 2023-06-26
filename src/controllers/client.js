@@ -18,7 +18,6 @@ const { init_genrand, genrand_int32 } = rngClass;
 
 let get_date_and_time = async (req, res, next) => {
   try {
-    
     const currentDate = new Date();
 
     const currentDayOfMonth = currentDate.getDate();
@@ -127,12 +126,12 @@ let players_login = async (req, res, next) => {
         .min(10)
         .max(13)
         .pattern(/^[0-9]+$/)
-        .required()
+        .required(),
     });
     const player = {
       e_mail: req.body.e_mail,
       password: req.body.password,
-      contact: req.body.contact
+      contact: req.body.contact,
     };
 
     const validatedBody = schema.validate(player);
@@ -140,9 +139,11 @@ let players_login = async (req, res, next) => {
     console.log("secretOrPrivateKey is ", process.env.ENC_KEY);
     console.log("validatedBody.value.e_mail", validatedBody.value.e_mail);
     console.log("i am client", validatedBody.value.e_mail);
-    const client = await Client.findOne({ where: { e_mail: validatedBody.value.e_mail } });
-    console.log("bnmgfd", client.dataValues);
-    console.log("i am client", client);
+    const client = await Client.findOne({
+      where: { e_mail: validatedBody.value.e_mail },
+    });
+    //console.log("bnmgfd", client.dataValues);
+    console.log("i am client", !client);
     //console.log("i am client", client.dataValues.update);
     if (!client) {
       return res
@@ -152,92 +153,31 @@ let players_login = async (req, res, next) => {
       console.log(client.dataValues.client_role);
       if (client.dataValues.client_role === "7") {
         if (client.dataValues.status == "active") {
-          if(validatedBody.value.password){
+          if (validatedBody.value.password) {
             passwordMatch = await bcrypt.compare(
               validatedBody.value.password,
               client.dataValues.password
             );
-  
+
             console.log("password match", passwordMatch);
             if (passwordMatch) {
-              console.log(
-                client.dataValues.otp,
-                "validatedBody.value.otp match",
-                validatedBody.value.otp
-              );
-              if(validatedBody.value.contact){
-                const ph_no_check = await Client.findOne({
-                  where: { contact: validatedBody.value.contact },
-                });
-                console.log("ph_no_check",ph_no_check);
-                  if(ph_no_check.dataValues.otp){
-                    const otp_time = ph_no_check.dataValues.otp_time ;
-                    if (Date.now() > client.dataValues.otpExpireTime){
-                      let otp = commonFunction.getOTP();
-                      let otpExpireTime = Date.now() + 100000;
-                      await Client.update(
-                        { otp: otp, otpExpireTime: otpExpireTime },
-                        { where: { e_mail: validatedBody.value.e_mail } }
-                      );
-                      return res.status(200).json({ message: resMessage.OTP_EXPIRED,newOtp : otp });
-  
-  
-                    }
-                    else{
-                      if (validatedBody.value.otp == client.dataValues.otp) {
-                        token = jwt.sign(
-                          { id: client.client_id, email: client.e_mail },
-                          process.env.ENC_KEY
-                        );
-          
-                        return res.status(400).json({
-                          message: responseMessage.LOGIN,
-                          token: token,
-                          error: false,
-                        });
-                      }
-  
-                    }
-  
-                  }
-                  else{
-                    let otp = commonFunction.getOTP();
-                    let otpExpireTime = Date.now() + 30000;
-                    await Client.update(
-                      { otp: otp, otpExpireTime: otpExpireTime },
-                      { where: { e_mail: validatedBody.value.e_mail } }
-                    );
-                    return res.status(400).json({
-                      message: resMessage.NO_OTP_OR_OTP_EXPIRE_TIME,
-                      otp: otp,
-                      error: true
-                    });
-                  }
-  
-              }
-              else {
-                return res.status(200).json({
-                  user_name : client.dataValues.user_name,
-                  message: resMessage.ENTER_REGISTERED_MOBILE_NUMBER,
+              return res
+                .status(200)
+                .json({
+                  user_name: client.dataValues.user_name,
+                  message: resMessage.PWD_MATCHED,
                   error: false,
                 });
-              }
-  
-  
             } else {
-              res
+              return res
                 .status(400)
                 .json({ message: resMessage.PASSWORD_INCORRECT, error: true });
             }
-
-          }
-          else{
+          } else {
             res
-                .status(400)
-                .json({ message: resMessage.PROVIDE_PASSWORD, error: true });
-
+              .status(400)
+              .json({ message: resMessage.PROVIDE_PASSWORD, error: true });
           }
-
         } else {
           res
             .status(409)
@@ -250,6 +190,119 @@ let players_login = async (req, res, next) => {
   } catch (error) {
     return next(error);
   }
+};
+
+//verify phno
+let verify_phno = async (req, res, next) => {
+  const schema = Joi.object({
+    user_name: Joi.string(),
+    contact: Joi.string()
+      .min(10)
+      .max(13)
+      .pattern(/^[0-9]+$/)
+      .required(),
+  });
+  const player = {
+    user_name: req.body.user_name,
+    contact: req.body.contact,
+  };
+
+  const validatedBody = schema.validate(player);
+  console.log("i am validated body", validatedBody);
+  console.log("secretOrPrivateKey is ", process.env.ENC_KEY);
+  const ph_no_check = await Client.findOne({
+    where: { contact: validatedBody.value.contact },
+  });
+   console.log ("ph_no_check",ph_no_check)
+  if (ph_no_check.dataValues.contact===validatedBody.value.contact)
+  {
+    if (ph_no_check.dataValues.otp) {
+      const otp_time = parseInt(ph_no_check.dataValues.otp_time);
+      console.log("otp_time", otp_time);
+      console.log("Date.now", Date.now());
+      if (Date.now() > otp_time) {
+        let otp = commonFunction.getOTP();
+        let otpExpireTime = Date.now() + 100000;
+        await Client.update(
+          { otp: otp, otp_time: otpExpireTime },
+          { where: { contact: validatedBody.value.contact } }
+        );
+        return res
+          .status(200)
+          .json({ result : {message : resMessage.PHNO_VERIFIED},message: resMessage.OTP_EXPIRED,contact : validatedBody.value.contact, otp,error : false });
+      } 
+      else {
+        let otp = commonFunction.getOTP();
+        let otpExpireTime = Date.now() + 100000;
+        await Client.update(
+          { otp: otp, otp_time: otpExpireTime },
+          { where: { contact: validatedBody.value.contact } }
+        );
+        return res.status(400).json({
+          message: resMessage.NO_OTP_OR_OTP_EXPIRE_TIME,
+          error: true,
+        });
+      }
+    } else {
+      
+      return res.status(200).json({
+        message: resMessage.OTP_SEND,
+        error: false,
+      });
+    }
+  }
+  else {
+    return res.status(400).json({
+      user_name : otp_time.dataValues.user_name,
+      message: resMessage.ENTER_REGISTERED_MOBILE_NUMBER,
+      error: true
+    });
+
+
+};
+}
+//verify otp
+let verify_otp = async (req, res, next) => {
+  const schema = Joi.object({
+    contact: Joi.string()
+      .min(10)
+      .max(13)
+      .pattern(/^[0-9]+$/)
+      .required(),
+    otp: Joi.number().required(),
+  });
+  const player = {
+    contact: req.body.contact,
+    otp: req.body.otp,
+  };
+
+  const validatedBody = schema.validate(player);
+       console.log("validatedBody",validatedBody)
+      const ph_no_check = await Client.findOne({where : {contact :validatedBody.value.contact}})
+      if (validatedBody.value.otp == ph_no_check.dataValues.otp) {
+        const token = jwt.sign(
+          {
+            id: ph_no_check.dataValues.client_id,
+            e_mail: ph_no_check.dataValues.e_mail,
+          },
+          process.env.ENC_KEY
+        );
+       console.log("token",token);
+        return res.status(200).json({
+          message: responseMessage.LOGIN,
+          token: token,
+          error: false,
+        });
+      }
+      else{
+        return res.status(400).json({
+          message: responseMessage.INCORRECT_OTP,
+          error: false,
+        });
+
+      }
+    
+  
 };
 
 //log in for other role
@@ -269,37 +322,35 @@ let other_role_login = async (req, res, next) => {
     } else {
       console.log(client.dataValues.client_role);
       const role = parseInt(client.dataValues.client_role);
-      if (role >1 && role < 7) { 
+      if (role > 1 && role < 7) {
         if (client.dataValues.status == "active") {
-          if(req.body.password){
-          passwordMatch = await bcrypt.compare(
-            req.body.password,
-            client.dataValues.password
-          );
-          console.log("password match", passwordMatch);
-          if (passwordMatch) {
-            token = jwt.sign(
-              { id: client.client_id, email: client.e_mail },
-              process.env.ENC_KEY
+          if (req.body.password) {
+            passwordMatch = await bcrypt.compare(
+              req.body.password,
+              client.dataValues.password
             );
-            res.status(200).json({
-              message: resMessage.LOGIN_SUCCESS,
-              token: token,
-              error: false,
-            });
+            console.log("password match", passwordMatch);
+            if (passwordMatch) {
+              token = jwt.sign(
+                { id: client.client_id, email: client.e_mail },
+                process.env.ENC_KEY
+              );
+              res.status(200).json({
+                message: resMessage.LOGIN_SUCCESS,
+                token: token,
+                error: false,
+              });
+            } else {
+              res
+                .status(400)
+                .json({ message: resMessage.PASSWORD_INCORRECT, error: true });
+            }
           } else {
-            res
-              .status(400)
-              .json({ message: resMessage.PASSWORD_INCORRECT, error: true });
-          }
-          }
-          else{
             res.status(200).json({
               message: "Enter password",
               error: false,
             });
           }
-          
         } else {
           res
             .status(409)
@@ -713,6 +764,8 @@ module.exports = {
   get_date_and_time: get_date_and_time,
   login: login,
   players_login: players_login,
+  verify_phno: verify_phno,
+  verify_otp: verify_otp,
   other_role_login,
   create: create,
   find_all_clients: find_all_clients,
