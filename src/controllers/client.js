@@ -239,15 +239,23 @@ let verify_phno = async (req, res, next) => {
           { where: { contact: validatedBody.value.contact } }
         );
         return res.status(400).json({
-          message: resMessage.NO_OTP_OR_OTP_EXPIRE_TIME,
+          message: resMessage.NO_OTP,
           error: true,
+          otp: otp
         });
       }
     } else {
+      let otp = commonFunction.getOTP();
+        let otpExpireTime = Date.now() + 100000;
+        await Client.update(
+          { otp: otp, otp_time: otpExpireTime },
+          { where: { contact: validatedBody.value.contact } }
+        );
       
       return res.status(200).json({
         message: resMessage.OTP_SEND,
         error: false,
+        otp : otp
       });
     }
   }
@@ -312,9 +320,6 @@ let other_role_login = async (req, res, next) => {
     console.log("secretOrPrivateKey is ", process.env.ENC_KEY);
     console.log("i am client", req.body.e_mail);
     const client = await Client.findOne({ where: { e_mail: req.body.e_mail } });
-    console.log("bnmgfd", client.dataValues);
-    console.log("i am client", client);
-    //console.log("i am client", client.dataValues.update);
     if (!client) {
       return res
         .status(404)
@@ -322,7 +327,7 @@ let other_role_login = async (req, res, next) => {
     } else {
       console.log(client.dataValues.client_role);
       const role = parseInt(client.dataValues.client_role);
-      if (role > 1 && role < 7) {
+      if (role > 2 && role < 7) {
         if (client.dataValues.status == "active") {
           if (req.body.password) {
             passwordMatch = await bcrypt.compare(
@@ -343,11 +348,11 @@ let other_role_login = async (req, res, next) => {
             } else {
               res
                 .status(400)
-                .json({ message: resMessage.PASSWORD_INCORRECT, error: true });
+                .json({ message: resMessage.PASSWORD_INCORRECT,  error: true });
             }
           } else {
             res.status(200).json({
-              message: "Enter password",
+              message: PASSWORD_EMPTY,
               error: false,
             });
           }

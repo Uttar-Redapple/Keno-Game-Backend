@@ -1,6 +1,6 @@
 module.exports = {
   LOGIN_SUCCESS: "login successful",
-  PASSWORD_INCORRECT: "Password Incorrect",
+  PASSWORD_INCORRECT: "Sorry either entered e mail or Password is Incorrect",
   CLIENT_DOES_NOT_EXIST: "Sorry ! User does not exist",
   CLIENT_NOT_CREATED: "Some error occurred while creating the user.",
   INVALID_EMAIL: "Invalid email.",
@@ -29,6 +29,7 @@ module.exports = {
   OTP_EXPIRED : "Sorry ! Your otp has been expired",
   PROVIDE_PASSWORD : "Please enter password",
   PHNO_VERIFIED : "Your phone number has been verified",
+  PASSWORD_EMPTY : "Enter password",
   countryList: "Country list",
   stateList: "State list",
   OTP_SEND: "OTP sent Successfully!",
