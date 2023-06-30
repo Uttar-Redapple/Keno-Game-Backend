@@ -1,0 +1,5 @@
+table name transaction details (transaction_id,round_id=bet_id,client_id,amount,transaction_type(enum-bet,win,deposit,withdraw),available_balance,created_date_time)
+
+//table numbers (slot_id,client_id,round_id,number1-5,created_date_time)
+
+table draw()

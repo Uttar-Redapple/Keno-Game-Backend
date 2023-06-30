@@ -1,5 +1,6 @@
 const check = require("../libs/checkLib");
 const appConfig = require("../../config/appConfig");
+const pRNG = appConfig.pRNG;
 const { v4: uuidv4 } = require("uuid");
 const tokenLib = require("../libs/tokenLib");
 const passwordLib = require("../libs/passwordLib");
@@ -15,6 +16,8 @@ const { Op } = require("sequelize");
 const rngClass = require("../algo/rng");
 const commonFunction = require("../libs/util");
 const { init_genrand, genrand_int32 } = rngClass;
+
+// get date and time from server
 
 let get_date_and_time = async (req, res, next) => {
   try {
@@ -32,7 +35,11 @@ let get_date_and_time = async (req, res, next) => {
       currentDate.getMinutes() +
       ":" +
       currentDate.getSeconds();
-
+      function getRandomArbitrary(min, max) {
+        return (Math.random() * (max - min) + min);
+      }
+      console.log(getRandomArbitrary(1,80));
+      console.log ("prng",pRNG);
     console.log(
       "currentDate",
       currentDate,
@@ -52,6 +59,8 @@ let get_date_and_time = async (req, res, next) => {
     return error;
   }
 };
+
+
 
 //login of roles other than players
 
@@ -499,6 +508,134 @@ let create = async (req, res, next) => {
     return next(error);
   }
 };
+
+//creating a player
+let create_player = async (req, res, next) => {
+  let clientId = uuidv4();
+
+  try {
+    console.log("I am req", req.body);
+
+    const schema = Joi.object({
+      //client_id: Joi.string().required(),
+      password: Joi.string()
+        .required()
+        .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[!@#$%^&*])(?=.*[A-Z]).{10,18}$/),
+      e_mail: Joi.string().email().required(),
+      name: Joi.string().required(),
+      user_name: Joi.string().required(),
+      contact: Joi.string()
+        .min(10)
+        .max(13)
+        .pattern(/^[0-9]+$/)
+        .required(),
+      client_role : Joi.string().required(), 
+      
+    });
+    const client = {
+      e_mail: req.body.e_mail,
+      password: req.body.password,
+      name: req.body.name,
+      client_role: req.body.client_role,
+      contact: req.body.contact,
+      user_name: req.body.user_name,
+      
+    };
+
+    const validatedBody = schema.validate(client);
+    console.log("i am validated body", validatedBody);
+
+    const loggedInClient = await Client.findOne({
+      where: { client_id: req.client_id },
+    });
+    console.log("logged in client", loggedInClient.dataValues.create);
+    console.log("i am req.body", req.body.e_mail);
+    const existedClient = await Client.findOne({
+      where: { e_mail: req.body.e_mail },
+    });
+    console.log("i am existed client", existedClient);
+    const { dataValues } = loggedInClient;
+    const existedClientByContactNo = await Client.findOne({
+      where: { contact: req.body.contact },
+    });
+    const existedClientByUserName = await Client.findOne({
+      where: { user_name: req.body.user_name },
+    });
+    if (existedClient) {
+      return res.status(409).send({
+        message: responseMessage.EMAIL_EXIST,
+        error: false,
+      });
+    } else if (existedClientByContactNo) {
+      return res.status(409).send({
+        message: responseMessage.CONTACT_NO_EXIST,
+        error: true,
+      });
+    } else if (existedClientByUserName) {
+      return res.status(409).send({
+        message: responseMessage.USER_NAME_EXIST,
+        error: true,
+      });
+    } else {
+      // Save Client in the database
+      const passwordHash = await bcrypt.hash(req.body.password, 10);
+      validatedBody.value.password = passwordHash;
+      validatedBody.value.client_id = clientId;
+      validatedBody.value.creater_id = req.client_id;
+      validatedBody.value.created_by = dataValues.client_role;
+      console.log(
+        "I am the data type of created_by",
+        typeof dataValues.client_role
+      );
+      console.log("client data", validatedBody.value);
+      client_role = parseInt(validatedBody.value.client_role);
+      created_by = parseInt(validatedBody.value.created_by);
+      console.log("!validatedBody.error", !validatedBody.error);
+      if (loggedInClient.dataValues.create == "1") {
+        if (client_role > created_by) {
+          console.log("ttt");
+          if (!validatedBody.error) {
+            console.log("sss");
+            const client_created = await Client.create(validatedBody.value);
+            console.log("client_created", client_created);
+            if (client_created) {
+              res.status(200).send({
+                data: client_created,
+                message: responseMessage.CLIENT_CREATED,
+                error: false,
+              });
+            } else {
+              res.status(500).send({
+                message: err.message || responseMessage.CLIENT_NOT_CREATED,
+                error: true,
+              });
+            }
+          } else {
+            res.status(400).send({
+              message: validatedBody.error.details[0].message,
+              error: true,
+            });
+          }
+        } else {
+          return res.status(409).send({
+            message: responseMessage.ROLE_CONFLICT,
+            error: false,
+          });
+          //throw apiError.conflict(responseMessage.ROLE_CONFLICT)
+        }
+      } else {
+        return res.status(401).send({
+          message: responseMessage.CREATING_NOT_ALLOWED,
+          error: false,
+        });
+      }
+    }
+  } catch (error) {
+    return next(error);
+  }
+};
+
+
 //edit_created_client
 
 let edit_created_client = async (req, res, next) => {
@@ -765,15 +902,48 @@ let find_all_clients = async (req, res, next) => {
   }
 };
 
+//gen random
+let gen_random = async(req,res,next) =>{
+  req.body.total_number;
+  //console.log ("prng",pRNG);
+  let rand_num = [];
+  let rand;
+  function getRandomArbitrary(min, max) {
+    return (pRNG.random() * (max - min) + min);
+  }
+  for(i=0;i<20;i++){
+   rand = Math.floor(getRandomArbitrary(1,80));
+   rand_num.push(rand);
+  }
+
+  function hasDuplicates(a) {
+
+    const noDups = new Set(a);
+  
+    return noDups;
+  }
+  const dup_removed = hasDuplicates(rand_num);
+  const array = Array.from(dup_removed);
+  console.log(dup_removed);
+  console.log("rand",rand_num);
+  res.status(200).json({
+    rand : rand_num,
+    array : array,
+    length : array.length
+  })
+};
+
 module.exports = {
   get_date_and_time: get_date_and_time,
   login: login,
   players_login: players_login,
   verify_phno: verify_phno,
   verify_otp: verify_otp,
-  other_role_login,
+  other_role_login : other_role_login,
   create: create,
   find_all_clients: find_all_clients,
   edit_created_client: edit_created_client,
   delete_client: delete_client,
+  gen_random : gen_random,
+  create_player : create_player
 };
