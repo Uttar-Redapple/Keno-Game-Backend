@@ -1,13 +1,13 @@
 {
-    "name": "interview-platform-api",
+    "name": "keno-milestone1",
     "version": "1.0.0",
-    "description": "backend for custom app",
+    "description": "backend for keno app",
     "main": "app.js",
     "scripts": {
         "start": "node app.js",
         "dev": "node app.js"
     },
-    "author": "uttar roy",
+    "author": "soma mohapatra",
     "license": "ISC",
     "dependencies": {
         "@hapi/joi": "^17.1.1",

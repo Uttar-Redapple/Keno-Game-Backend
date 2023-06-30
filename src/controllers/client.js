@@ -1,5 +1,6 @@
 const check = require("../libs/checkLib");
 const appConfig = require("../../config/appConfig");
+const pRNG = appConfig.pRNG;
 const { v4: uuidv4 } = require("uuid");
 const tokenLib = require("../libs/tokenLib");
 const passwordLib = require("../libs/passwordLib");
@@ -16,42 +17,6 @@ const rngClass = require("../algo/rng");
 const commonFunction = require("../libs/util");
 const { init_genrand, genrand_int32 } = rngClass;
 
-let get_date_and_time = async (req, res, next) => {
-  try {
-    const currentDate = new Date();
-
-    const currentDayOfMonth = currentDate.getDate();
-    const currentMonth = currentDate.getMonth(); // Be careful! January is 0, not 1
-    const currentYear = currentDate.getFullYear();
-
-    const dateString =
-      currentDayOfMonth + "/" + (currentMonth + 1) + "/" + currentYear;
-    var time =
-      currentDate.getHours() +
-      ":" +
-      currentDate.getMinutes() +
-      ":" +
-      currentDate.getSeconds();
-
-    console.log(
-      "currentDate",
-      currentDate,
-      "currentDayOfMonth",
-      currentDayOfMonth,
-      "currentYear",
-      currentYear,
-      "dateString",
-      dateString,
-      "current_time",
-      time
-    );
-    return res
-      .status(200)
-      .json({ current_date: dateString, current_time: time, error: false });
-  } catch (error) {
-    return error;
-  }
-};
 
 //login of roles other than players
 
@@ -192,183 +157,6 @@ let players_login = async (req, res, next) => {
   }
 };
 
-//verify phno
-let verify_phno = async (req, res, next) => {
-  const schema = Joi.object({
-    user_name: Joi.string(),
-    contact: Joi.string()
-      .min(10)
-      .max(13)
-      .pattern(/^[0-9]+$/)
-      .required(),
-  });
-  const player = {
-    user_name: req.body.user_name,
-    contact: req.body.contact,
-  };
-
-  const validatedBody = schema.validate(player);
-  console.log("i am validated body", validatedBody);
-  console.log("secretOrPrivateKey is ", process.env.ENC_KEY);
-  const ph_no_check = await Client.findOne({
-    where: { contact: validatedBody.value.contact },
-  });
-   console.log ("ph_no_check",ph_no_check)
-  if (ph_no_check.dataValues.contact===validatedBody.value.contact)
-  {
-    if (ph_no_check.dataValues.otp) {
-      const otp_time = parseInt(ph_no_check.dataValues.otp_time);
-      console.log("otp_time", otp_time);
-      console.log("Date.now", Date.now());
-      if (Date.now() > otp_time) {
-        let otp = commonFunction.getOTP();
-        let otpExpireTime = Date.now() + 100000;
-        await Client.update(
-          { otp: otp, otp_time: otpExpireTime },
-          { where: { contact: validatedBody.value.contact } }
-        );
-        return res
-          .status(200)
-          .json({ result : {message : resMessage.PHNO_VERIFIED},message: resMessage.OTP_EXPIRED,contact : validatedBody.value.contact, otp,error : false });
-      } 
-      else {
-        let otp = commonFunction.getOTP();
-        let otpExpireTime = Date.now() + 100000;
-        await Client.update(
-          { otp: otp, otp_time: otpExpireTime },
-          { where: { contact: validatedBody.value.contact } }
-        );
-        return res.status(400).json({
-          message: resMessage.NO_OTP,
-          error: true,
-          otp: otp
-        });
-      }
-    } else {
-      let otp = commonFunction.getOTP();
-        let otpExpireTime = Date.now() + 100000;
-        await Client.update(
-          { otp: otp, otp_time: otpExpireTime },
-          { where: { contact: validatedBody.value.contact } }
-        );
-      
-      return res.status(200).json({
-        message: resMessage.OTP_SEND,
-        error: false,
-        otp : otp
-      });
-    }
-  }
-  else {
-    return res.status(400).json({
-      user_name : otp_time.dataValues.user_name,
-      message: resMessage.ENTER_REGISTERED_MOBILE_NUMBER,
-      error: true
-    });
-
-
-};
-}
-//verify otp
-let verify_otp = async (req, res, next) => {
-  const schema = Joi.object({
-    contact: Joi.string()
-      .min(10)
-      .max(13)
-      .pattern(/^[0-9]+$/)
-      .required(),
-    otp: Joi.number().required(),
-  });
-  const player = {
-    contact: req.body.contact,
-    otp: req.body.otp,
-  };
-
-  const validatedBody = schema.validate(player);
-       console.log("validatedBody",validatedBody)
-      const ph_no_check = await Client.findOne({where : {contact :validatedBody.value.contact}})
-      if (validatedBody.value.otp == ph_no_check.dataValues.otp) {
-        const token = jwt.sign(
-          {
-            id: ph_no_check.dataValues.client_id,
-            e_mail: ph_no_check.dataValues.e_mail,
-          },
-          process.env.ENC_KEY
-        );
-       console.log("token",token);
-        return res.status(200).json({
-          message: responseMessage.LOGIN,
-          token: token,
-          error: false,
-        });
-      }
-      else{
-        return res.status(400).json({
-          message: responseMessage.INCORRECT_OTP,
-          error: false,
-        });
-
-      }
-    
-  
-};
-
-//log in for other role
-
-let other_role_login = async (req, res, next) => {
-  try {
-    console.log("secretOrPrivateKey is ", process.env.ENC_KEY);
-    console.log("i am client", req.body.e_mail);
-    const client = await Client.findOne({ where: { e_mail: req.body.e_mail } });
-    if (!client) {
-      return res
-        .status(404)
-        .json({ message: resMessage.CLIENT_DOES_NOT_EXIST, error: true });
-    } else {
-      console.log(client.dataValues.client_role);
-      const role = parseInt(client.dataValues.client_role);
-      if (role > 2 && role < 7) {
-        if (client.dataValues.status == "active") {
-          if (req.body.password) {
-            passwordMatch = await bcrypt.compare(
-              req.body.password,
-              client.dataValues.password
-            );
-            console.log("password match", passwordMatch);
-            if (passwordMatch) {
-              token = jwt.sign(
-                { id: client.client_id, email: client.e_mail },
-                process.env.ENC_KEY
-              );
-              res.status(200).json({
-                message: resMessage.LOGIN_SUCCESS,
-                token: token,
-                error: false,
-              });
-            } else {
-              res
-                .status(400)
-                .json({ message: resMessage.PASSWORD_INCORRECT,  error: true });
-            }
-          } else {
-            res.status(200).json({
-              message: PASSWORD_EMPTY,
-              error: false,
-            });
-          }
-        } else {
-          res
-            .status(409)
-            .json({ message: resMessage.CLIENT_IS_NOT_ACTIVE, error: true });
-        }
-      } else {
-        res.status(409).json({ message: resMessage.CANT_LOGIN, error: true });
-      }
-    }
-  } catch (error) {
-    return next(error);
-  }
-};
 
 //creating a client
 let create = async (req, res, next) => {
@@ -499,6 +287,134 @@ let create = async (req, res, next) => {
     return next(error);
   }
 };
+
+//creating a player
+let create_player = async (req, res, next) => {
+  let clientId = uuidv4();
+
+  try {
+    console.log("I am req", req.body);
+
+    const schema = Joi.object({
+      //client_id: Joi.string().required(),
+      password: Joi.string()
+        .required()
+        .regex(/^(?=.*\d)(?=.*[a-z])(?=.*[!@#$%^&*])(?=.*[A-Z]).{10,18}$/),
+      e_mail: Joi.string().email().required(),
+      name: Joi.string().required(),
+      user_name: Joi.string().required(),
+      contact: Joi.string()
+        .min(10)
+        .max(13)
+        .pattern(/^[0-9]+$/)
+        .required(),
+      client_role : Joi.string().required(), 
+      
+    });
+    const client = {
+      e_mail: req.body.e_mail,
+      password: req.body.password,
+      name: req.body.name,
+      client_role: req.body.client_role,
+      contact: req.body.contact,
+      user_name: req.body.user_name,
+      
+    };
+
+    const validatedBody = schema.validate(client);
+    console.log("i am validated body", validatedBody);
+
+    const loggedInClient = await Client.findOne({
+      where: { client_id: req.client_id },
+    });
+    console.log("logged in client", loggedInClient.dataValues.create);
+    console.log("i am req.body", req.body.e_mail);
+    const existedClient = await Client.findOne({
+      where: { e_mail: req.body.e_mail },
+    });
+    console.log("i am existed client", existedClient);
+    const { dataValues } = loggedInClient;
+    const existedClientByContactNo = await Client.findOne({
+      where: { contact: req.body.contact },
+    });
+    const existedClientByUserName = await Client.findOne({
+      where: { user_name: req.body.user_name },
+    });
+    if (existedClient) {
+      return res.status(409).send({
+        message: responseMessage.EMAIL_EXIST,
+        error: false,
+      });
+    } else if (existedClientByContactNo) {
+      return res.status(409).send({
+        message: responseMessage.CONTACT_NO_EXIST,
+        error: true,
+      });
+    } else if (existedClientByUserName) {
+      return res.status(409).send({
+        message: responseMessage.USER_NAME_EXIST,
+        error: true,
+      });
+    } else {
+      // Save Client in the database
+      const passwordHash = await bcrypt.hash(req.body.password, 10);
+      validatedBody.value.password = passwordHash;
+      validatedBody.value.client_id = clientId;
+      validatedBody.value.creater_id = req.client_id;
+      validatedBody.value.created_by = dataValues.client_role;
+      console.log(
+        "I am the data type of created_by",
+        typeof dataValues.client_role
+      );
+      console.log("client data", validatedBody.value);
+      client_role = parseInt(validatedBody.value.client_role);
+      created_by = parseInt(validatedBody.value.created_by);
+      console.log("!validatedBody.error", !validatedBody.error);
+      if (loggedInClient.dataValues.create == "1") {
+        if (client_role > created_by) {
+          console.log("ttt");
+          if (!validatedBody.error) {
+            console.log("sss");
+            const client_created = await Client.create(validatedBody.value);
+            console.log("client_created", client_created);
+            if (client_created) {
+              res.status(200).send({
+                data: client_created,
+                message: responseMessage.CLIENT_CREATED,
+                error: false,
+              });
+            } else {
+              res.status(500).send({
+                message: err.message || responseMessage.CLIENT_NOT_CREATED,
+                error: true,
+              });
+            }
+          } else {
+            res.status(400).send({
+              message: validatedBody.error.details[0].message,
+              error: true,
+            });
+          }
+        } else {
+          return res.status(409).send({
+            message: responseMessage.ROLE_CONFLICT,
+            error: false,
+          });
+          //throw apiError.conflict(responseMessage.ROLE_CONFLICT)
+        }
+      } else {
+        return res.status(401).send({
+          message: responseMessage.CREATING_NOT_ALLOWED,
+          error: false,
+        });
+      }
+    }
+  } catch (error) {
+    return next(error);
+  }
+};
+
+
 //edit_created_client
 
 let edit_created_client = async (req, res, next) => {
@@ -765,15 +681,13 @@ let find_all_clients = async (req, res, next) => {
   }
 };
 
+
 module.exports = {
-  get_date_and_time: get_date_and_time,
   login: login,
   players_login: players_login,
-  verify_phno: verify_phno,
-  verify_otp: verify_otp,
-  other_role_login,
   create: create,
   find_all_clients: find_all_clients,
   edit_created_client: edit_created_client,
   delete_client: delete_client,
+  create_player : create_player
 };

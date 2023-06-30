@@ -15,29 +15,16 @@ const startDB = (app,db_type)=>{
     switch(db_type){
         case "mysql":
             console.log(`Environment : ${process.env.NODE_ENV} Database : ${process.env.DATABASE_TYPE}`);
-            //Import the sequelize module
             try{
                 dataAPI.authenticate()
                 .then(()=>{
                     console.log(`Database Connection open Success : ${JSON.stringify(dbConfig.host)}`);
-                    // const redis_client = redis.createClient({
-                    //     url:appConfig.redis_url
-                    // });
-                    
-                    // redis_client.on('error', (err) => {
-                    //     console.log("Error " + err)
-                    // });
-                    server.startServer(app);
-                    // module.exports.dataAPI = dataAPI;
-                    //module.exports.redis_client = redis_client;
-                    // // Bootstrap route
+                   server.startServer(app);
                     console.log('CWD :: ',process.cwd());
                     const schemaPath = `${process.cwd()}/src/models`;
-                    //Bootstrap models
                     fs.readdirSync(schemaPath).forEach(function (file) {
                     if (~file.indexOf('.js')) require(schemaPath + '/' + file)
                     });
-                    // end Bootstrap models
                     const routesPath = `${process.cwd()}/src/routes`;
                     fs.readdirSync(routesPath).forEach(function (file) {
                     if (~file.indexOf('.js')) {
@@ -45,8 +32,6 @@ const startDB = (app,db_type)=>{
                         route.setRouter(app);
                     }
                     });
-                    // // end bootstrap route
-                    
                 });
             }catch(err){
                 console.log(`Database Connection Open Error : ${err}`);

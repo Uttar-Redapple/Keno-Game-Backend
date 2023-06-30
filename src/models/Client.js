@@ -10,14 +10,11 @@ const Client = dataAPI.define(
   "Client",
   {
     client_id: {
-      // Integer Datatype
       type: Sequelize.STRING,
-      // To uniquely identify user
       primaryKey: true,
       defaultValue: "111",
     },
     creater_id: {
-      // Integer Datatype
       type: Sequelize.STRING,
       defaultValue: "1",
     },
@@ -80,7 +77,6 @@ const Client = dataAPI.define(
     },
     client_role: {
       type: Sequelize.ENUM,
-      //values: [1,2,3,4,5,6,7,8]
       values: ["1", "2", "3", "4", "5", "6", "7", "8"],
       defaultValue: "1",
     },
@@ -101,7 +97,6 @@ const Client = dataAPI.define(
 Client.sync();
 (async () => {
   const result = await Client.findOne({ where: { client_role: "1" } });
-  //console.log("I am from model",result);
   if (result) {
     console.log("Default Admin 😀 .");
   } else {
