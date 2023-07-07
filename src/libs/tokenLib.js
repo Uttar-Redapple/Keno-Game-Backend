@@ -55,8 +55,6 @@
 const jwt = require('jsonwebtoken') ;
 const apiError = require("./apiError") ;
 const responseMessage = require("./responseMessage") ;
-const clientModel = require("../models/Client")
-
 module.exports = {
   async verifyToken(req, res, next) {
     

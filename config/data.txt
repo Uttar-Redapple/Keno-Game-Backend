@@ -3,3 +3,45 @@ table name transaction details (transaction_id,round_id=bet_id,client_id,amount,
 //table numbers (slot_id,client_id,round_id,number1-5,created_date_time)
 
 table draw()
+
+
+
+let find_all_clients = async (req, res, next) => {
+  const superUser = await Client.findOne({
+    where: { client_id: req.client_id },
+  });
+  //console.log("superUser", superUser);
+  const findAll = await Client.findAll();
+  //console.log("i am client_id form find all", findAll);
+  //console.log("superUser.dataValues.client_id", superUser.dataValues.client_id);
+  if (superUser.dataValues.client_id == "abc") {
+    const player_of_individual_role = await Client.findOne({
+      where: {
+        [Op.and]: [
+          { client_role: { [Op.eq]: "7" } },
+          { creater_id: { [Op.eq]: superUser.dataValues.client_id } },
+        ],
+      },
+    });
+    return res.status(200).json({
+      players: player_of_individual_role,
+      message: responseMessage.PLAYERS_FOUND,
+      error: false,
+    });
+    
+  } else {
+      const player_of_individual_role = await Client.findOne({
+        where: {
+          [Op.and]: [
+            { client_role: { [Op.eq]: "7" } },
+            { creater_id: { [Op.eq]: superUser.dataValues.client_id } },
+          ],
+        },
+      });
+      return res.status(200).json({
+        players: player_of_individual_role,
+        message: responseMessage.NO_PLAYERS,
+        error: true,
+      });
+  }
+};

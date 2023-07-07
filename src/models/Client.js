@@ -14,6 +14,8 @@ const Client = dataAPI.define(
       type: Sequelize.STRING,
       // To uniquely identify user
       primaryKey: true,
+      foreignKey: 'client_id', 
+      foreignKeyConstraint: true,
       defaultValue: "111",
     },
     creater_id: {
@@ -36,7 +38,7 @@ const Client = dataAPI.define(
       type: Sequelize.INTEGER,
     },
     otp_time: {
-      type: Sequelize.INTEGER,
+      type: Sequelize.BIGINT,
     },
     amount: {
       type: Sequelize.INTEGER,

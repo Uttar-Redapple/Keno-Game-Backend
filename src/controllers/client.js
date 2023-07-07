@@ -1,6 +1,6 @@
 const check = require("../libs/checkLib");
 const appConfig = require("../../config/appConfig");
-const pRNG = appConfig.pRNG;
+
 const { v4: uuidv4 } = require("uuid");
 const tokenLib = require("../libs/tokenLib");
 const passwordLib = require("../libs/passwordLib");
@@ -35,11 +35,11 @@ let get_date_and_time = async (req, res, next) => {
       currentDate.getMinutes() +
       ":" +
       currentDate.getSeconds();
-      function getRandomArbitrary(min, max) {
-        return (Math.random() * (max - min) + min);
-      }
-      console.log(getRandomArbitrary(1,80));
-      console.log ("prng",pRNG);
+    function getRandomArbitrary(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+    console.log(getRandomArbitrary(1, 80));
+
     console.log(
       "currentDate",
       currentDate,
@@ -56,11 +56,9 @@ let get_date_and_time = async (req, res, next) => {
       .status(200)
       .json({ current_date: dateString, current_time: time, error: false });
   } catch (error) {
-    return error;
+    return next(error);
   }
 };
-
-
 
 //login of roles other than players
 
@@ -170,13 +168,11 @@ let players_login = async (req, res, next) => {
 
             console.log("password match", passwordMatch);
             if (passwordMatch) {
-              return res
-                .status(200)
-                .json({
-                  user_name: client.dataValues.user_name,
-                  message: resMessage.PWD_MATCHED,
-                  error: false,
-                });
+              return res.status(200).json({
+                user_name: client.dataValues.user_name,
+                message: resMessage.PWD_MATCHED,
+                error: false,
+              });
             } else {
               return res
                 .status(400)
@@ -222,62 +218,64 @@ let verify_phno = async (req, res, next) => {
   const ph_no_check = await Client.findOne({
     where: { contact: validatedBody.value.contact },
   });
-   console.log ("ph_no_check",ph_no_check)
-  if (ph_no_check.dataValues.contact===validatedBody.value.contact)
-  {
-    if (ph_no_check.dataValues.otp) {
-      const otp_time = parseInt(ph_no_check.dataValues.otp_time);
-      console.log("otp_time", otp_time);
-      console.log("Date.now", Date.now());
-      if (Date.now() > otp_time) {
+  console.log("ph_no_check", ph_no_check);
+  if (ph_no_check) {
+    if (ph_no_check.dataValues.contact === validatedBody.value.contact) {
+      if (ph_no_check.dataValues.otp) {
+        const otp_time = parseInt(ph_no_check.dataValues.otp_time);
+        console.log("otp_time", otp_time);
+        console.log("Date.now", Date.now());
+        if (Date.now() > otp_time) {
+          let otp = commonFunction.getOTP();
+          let otpExpireTime = Date.now() + 100000;
+          await Client.update(
+            { otp: otp, otp_time: otpExpireTime },
+            { where: { contact: validatedBody.value.contact } }
+          );
+          return res
+            .status(200)
+            .json({
+              result: { message: resMessage.PHNO_VERIFIED },
+              message: resMessage.OTP_EXPIRED,
+              contact: validatedBody.value.contact,
+              otp,
+              error: false,
+            });
+        } else {
+          let otp = commonFunction.getOTP();
+          let otpExpireTime = Date.now() + 100000;
+          await Client.update(
+            { otp: otp, otp_time: otpExpireTime },
+            { where: { contact: validatedBody.value.contact } }
+          );
+          return res.status(400).json({
+            message: resMessage.NO_OTP,
+            error: false,
+            otp: otp,
+          });
+        }
+      } else {
         let otp = commonFunction.getOTP();
         let otpExpireTime = Date.now() + 100000;
         await Client.update(
           { otp: otp, otp_time: otpExpireTime },
           { where: { contact: validatedBody.value.contact } }
         );
-        return res
-          .status(200)
-          .json({ result : {message : resMessage.PHNO_VERIFIED},message: resMessage.OTP_EXPIRED,contact : validatedBody.value.contact, otp,error : false });
-      } 
-      else {
-        let otp = commonFunction.getOTP();
-        let otpExpireTime = Date.now() + 100000;
-        await Client.update(
-          { otp: otp, otp_time: otpExpireTime },
-          { where: { contact: validatedBody.value.contact } }
-        );
-        return res.status(400).json({
-          message: resMessage.NO_OTP,
-          error: true,
-          otp: otp
+
+        return res.status(200).json({
+          message: resMessage.OTP_SEND,
+          error: false,
+          otp: otp,
         });
       }
-    } else {
-      let otp = commonFunction.getOTP();
-        let otpExpireTime = Date.now() + 100000;
-        await Client.update(
-          { otp: otp, otp_time: otpExpireTime },
-          { where: { contact: validatedBody.value.contact } }
-        );
-      
-      return res.status(200).json({
-        message: resMessage.OTP_SEND,
-        error: false,
-        otp : otp
-      });
     }
-  }
-  else {
+  } else {
     return res.status(400).json({
-      user_name : otp_time.dataValues.user_name,
       message: resMessage.ENTER_REGISTERED_MOBILE_NUMBER,
-      error: true
+      error: true,
     });
-
-
+  }
 };
-}
 //verify otp
 let verify_otp = async (req, res, next) => {
   const schema = Joi.object({
@@ -294,32 +292,30 @@ let verify_otp = async (req, res, next) => {
   };
 
   const validatedBody = schema.validate(player);
-       console.log("validatedBody",validatedBody)
-      const ph_no_check = await Client.findOne({where : {contact :validatedBody.value.contact}})
-      if (validatedBody.value.otp == ph_no_check.dataValues.otp) {
-        const token = jwt.sign(
-          {
-            id: ph_no_check.dataValues.client_id,
-            e_mail: ph_no_check.dataValues.e_mail,
-          },
-          process.env.ENC_KEY
-        );
-       console.log("token",token);
-        return res.status(200).json({
-          message: responseMessage.LOGIN,
-          token: token,
-          error: false,
-        });
-      }
-      else{
-        return res.status(400).json({
-          message: responseMessage.INCORRECT_OTP,
-          error: false,
-        });
-
-      }
-    
-  
+  console.log("validatedBody", validatedBody);
+  const ph_no_check = await Client.findOne({
+    where: { contact: validatedBody.value.contact },
+  });
+  if (validatedBody.value.otp == ph_no_check.dataValues.otp) {
+    const token = jwt.sign(
+      {
+        id: ph_no_check.dataValues.client_id,
+        e_mail: ph_no_check.dataValues.e_mail,
+      },
+      process.env.ENC_KEY
+    );
+    console.log("token", token);
+    return res.status(200).json({
+      message: responseMessage.LOGIN,
+      token: token,
+      error: false,
+    });
+  } else {
+    return res.status(400).json({
+      message: responseMessage.INCORRECT_OTP,
+      error: false,
+    });
+  }
 };
 
 //log in for other role
@@ -357,7 +353,7 @@ let other_role_login = async (req, res, next) => {
             } else {
               res
                 .status(400)
-                .json({ message: resMessage.PASSWORD_INCORRECT,  error: true });
+                .json({ message: resMessage.PASSWORD_INCORRECT, error: true });
             }
           } else {
             res.status(200).json({
@@ -463,7 +459,7 @@ let create = async (req, res, next) => {
         "I am the data type of created_by",
         typeof dataValues.client_role
       );
-      console.log("client data", validatedBody.value);
+      console.log("client data", validatedBody);
       client_role = parseInt(validatedBody.value.client_role);
       created_by = parseInt(validatedBody.value.created_by);
       console.log("!validatedBody.error", !validatedBody.error);
@@ -529,8 +525,7 @@ let create_player = async (req, res, next) => {
         .max(13)
         .pattern(/^[0-9]+$/)
         .required(),
-      client_role : Joi.string().required(), 
-      
+      client_role: Joi.string().required(),
     });
     const client = {
       e_mail: req.body.e_mail,
@@ -539,7 +534,6 @@ let create_player = async (req, res, next) => {
       client_role: req.body.client_role,
       contact: req.body.contact,
       user_name: req.body.user_name,
-      
     };
 
     const validatedBody = schema.validate(client);
@@ -634,7 +628,6 @@ let create_player = async (req, res, next) => {
     return next(error);
   }
 };
-
 
 //edit_created_client
 
@@ -902,35 +895,60 @@ let find_all_clients = async (req, res, next) => {
   }
 };
 
-//gen random
-let gen_random = async(req,res,next) =>{
-  req.body.total_number;
-  //console.log ("prng",pRNG);
-  let rand_num = [];
-  let rand;
-  function getRandomArbitrary(min, max) {
-    return (pRNG.random() * (max - min) + min);
-  }
-  for(i=0;i<20;i++){
-   rand = Math.floor(getRandomArbitrary(1,80));
-   rand_num.push(rand);
-  }
+//find player
+let find_player = async (req, res, next) => {
+  try {
+    const schema = Joi.object({
+      user_name: Joi.string().required(),
+    });
+    const client = {
+      user_name: req.body.user_name,
+    };
 
-  function hasDuplicates(a) {
+    const validatedBody = schema.validate(client);
+    console.log("i am validated body", req.client_id);
 
-    const noDups = new Set(a);
-  
-    return noDups;
+    if (req.client_id == "abc") {
+      const player_of_individual_role = await Client.findOne({
+        user_name: validatedBody.value.user_name,
+      });
+      if (player_of_individual_role) {
+        return res.status(200).json({
+          data: player_of_individual_role,
+          message: responseMessage.PLAYERS_FOUND,
+          error: false,
+        });
+      } else {
+        return res.status(200).json({
+          data: player_of_individual_role,
+          message: responseMessage.NO_PLAYERS,
+          error: true,
+        });
+      }
+    } else {
+      const player_of_individual_role = await Client.findOne({
+        where: {
+          user_name: validatedBody.value.user_name,
+          creater_id: req.client_id,
+        },
+      });
+      if (player_of_individual_role) {
+        return res.status(200).json({
+          data: player_of_individual_role,
+          message: responseMessage.PLAYERS_FOUND,
+          error: false,
+        });
+      } else {
+        return res.status(200).json({
+          data: player_of_individual_role,
+          message: responseMessage.NO_PLAYERS,
+          error: true,
+        });
+      }
+    }
+  } catch (e) {
+    return next(e);
   }
-  const dup_removed = hasDuplicates(rand_num);
-  const array = Array.from(dup_removed);
-  console.log(dup_removed);
-  console.log("rand",rand_num);
-  res.status(200).json({
-    rand : rand_num,
-    array : array,
-    length : array.length
-  })
 };
 
 module.exports = {
@@ -939,11 +957,11 @@ module.exports = {
   players_login: players_login,
   verify_phno: verify_phno,
   verify_otp: verify_otp,
-  other_role_login : other_role_login,
+  other_role_login: other_role_login,
   create: create,
   find_all_clients: find_all_clients,
   edit_created_client: edit_created_client,
   delete_client: delete_client,
-  gen_random : gen_random,
-  create_player : create_player
+  create_player: create_player,
+  find_player: find_player,
 };
