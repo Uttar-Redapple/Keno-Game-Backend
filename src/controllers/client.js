@@ -919,7 +919,7 @@ let find_player = async (req, res, next) => {
           error: false,
         });
       } else {
-        return res.status(200).json({
+        return res.status(404).json({
           data: player_of_individual_role,
           message: responseMessage.NO_PLAYERS,
           error: true,
@@ -939,7 +939,7 @@ let find_player = async (req, res, next) => {
           error: false,
         });
       } else {
-        return res.status(200).json({
+        return res.status(404).json({
           data: player_of_individual_role,
           message: responseMessage.NO_PLAYERS,
           error: true,
