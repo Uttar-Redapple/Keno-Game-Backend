@@ -17,13 +17,11 @@ let place_bet = async (req, res,next) => {
     let bet_id = uuidv4();
     let draw_id = uuidv4();
     const schema = Joi.object({
-        contact : Joi.number().required,
-        name : Joi.string().required,
+        contact : Joi.string().required(),
+        name : Joi.string().required(),
         role : Joi.number(),
         num10: Joi.string().required(),
-        bet_amount: Joi.string().required(),
-        draw_date : Joi.date().required(),
-        draw_time : Joi.string().required()
+        bet_amount: Joi.string().required()
       });
     const bet = {
         contact : req.body.contact,
@@ -31,13 +29,17 @@ let place_bet = async (req, res,next) => {
         role : req.body.role,
         num10: req.body.number_select,
         bet_amount: req.body.bet_amount,
-        draw_date : req.body.draw_date,
-        draw_time : req.body.draw_time,
         contact : req.body.contact
     };
     const validated_body = schema.validate(bet); 
     validated_body.value.client_id = guest_id;
     validated_body.value.bet_id = bet_id;
+    // const date = validated_body.value.draw_date.split("/");
+    // date.unshift(date[1]);
+    // date.splice(2,1);
+    // const month_date = date.join("/");
+    // console.log ("date",month_date);
+    // validated_body.value.draw_date = month_date ;
     
     console.log("validatedBody",validated_body);
     const bet_created = await Placebet.create(validated_body.value);
@@ -78,6 +80,14 @@ let get_placed_bet = async (req,res,next) => {
           });
 
           if (bet_details) {
+          const num = bet_details.dataValues.num10 ;
+          console.log("num",num);
+          console.log("num",num[0]);
+          console.log("num.length",num.length);
+          const sliced = num.slice(1,num.length-1)
+          const num_val = sliced.split(",");
+          console.log("bet_details.data",num_val);
+          //typeof(parseInt(num_val[0]))
             res.status(200).send({
               data: bet_details,
               draw_numbers : "35,56,78,54,33,87,89,88,44,22",
@@ -90,14 +100,7 @@ let get_placed_bet = async (req,res,next) => {
               error: true,
             });
           }
-          const num = bet_details.dataValues.num10 ;
-          console.log("num",num);
-          console.log("num",num[0]);
-          console.log("num.length",num.length);
-          const sliced = num.slice(1,num.length-1)
-          const num_val = sliced.split(",");
-          console.log("bet_details.data",num_val);
-          //typeof(parseInt(num_val[0]))
+          
         
 
     }

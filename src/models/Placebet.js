@@ -6,51 +6,6 @@ const { Sequelize, DataTypes } = require("sequelize");
 const { dataAPI } = require("../../www/db/db");
 const { INTEGER } = require("sequelize");
 
-// num1: {
-//   // Integer Datatype
-//   type: Sequelize.STRING,
-//   defaultValue: "1",
-// },
-// num2: {
-//   // Integer Datatype
-//   type: Sequelize.STRING,
-//   defaultValue: "1",
-// },
-// num3: {
-//   // Integer Datatype
-//   type: Sequelize.STRING,
-//   defaultValue: "1",
-// },
-// num4: {
-//   // Integer Datatype
-//   type: Sequelize.INTEGER,
-//   defaultValue: "1",
-// },
-// num5: {
-//   // Integer Datatype
-//   type: Sequelize.INTEGER,
-//   defaultValue: "1",
-// },
-// num6: {
-//   // Integer Datatype
-//   type: Sequelize.INTEGER,
-//   defaultValue: "1",
-// },
-// num7: {
-//   // Integer Datatype
-//   type: Sequelize.INTEGER,
-//   defaultValue: "1",
-// },
-// num8: {
-//   // Integer Datatype
-//   type: Sequelize.INTEGER,
-//   defaultValue: "1",
-// },
-// num9: {
-//   // Integer Datatype
-//   type: Sequelize.INTEGER,
-//   defaultValue: "1",
-// },
 const Placebet = dataAPI.define(
   "Placebet",
   {
