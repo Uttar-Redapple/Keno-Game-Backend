@@ -11,5 +11,8 @@ module.exports.setRouter = (app) => {
   app.get(`${baseUrl}/gen_random`, betController.gen_random);
   //app.use(auth.verifyToken);
   app.post (`${baseUrl}/add_balance`,betController.add_balance);
+  app.post(`${baseUrl}/get_bet_history`, betController.get_bet_history);
+  app.post(`${baseUrl}/get_transaction_history`, betController.get_transaction_history);
+  
 };
 

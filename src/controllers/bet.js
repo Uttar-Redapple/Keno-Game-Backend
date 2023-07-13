@@ -56,8 +56,15 @@ let place_bet = async (req, res,next) => {
       if (bet_created) {
         console.log("amount",amount.dataValues.amount);
         const prev_bal = amount.dataValues.amount ;
+        console.log("prev_bal",prev_bal);
+        console.log("validated_body.value.bet_amount",validated_body.value.bet_amount);
+        
         let curr_bal = prev_bal-validated_body.value.bet_amount ;
-        const bal_update = await Client.update({ amount: curr_bal },{ where: { user_name: validated_body.value.user_name } })
+        console.log("curr_bal",curr_bal);
+        console.log("amount.dataValues.client_id",amount.dataValues.client_id);
+        const bal_update = await Client.update({ amount: curr_bal },{ where: { client_id: amount.dataValues.client_id } });
+        console.log("bal_update",bal_update);
+        //const amount_bet_table = await Placebet.update({ amount: curr_bal },{ where: { client_id: validated_body.value.user_name } })
             res.status(200).send({
               data: bet_created,
               message: responseMessage.BET_PLACED,
@@ -236,7 +243,8 @@ let add_balance = async (req,res,next) => {
   console.log("amount",amount.dataValues.amount);
   const prev_bal = amount.dataValues.amount ;
   let curr_bal = prev_bal+validated_body.value.amount ;
-  const bal_update = await Client.update({ amount: curr_bal },{ where: { client_id: validated_body.value.client_id } })
+  const bal_update = await Client.update({ amount: curr_bal },{ where: { client_id: validated_body.value.client_id } });
+  //const amount_bet_table = await Placebet.update({ total_amount: curr_bal },{ where: { client_id: validated_body.value.user_name } })
   console.log("amount",amount.dataValues.amount);
   console.log("new_amount",curr_bal);
   res.status(200).json({responseMessage : "your balance has been updated successfully",updated_amount : curr_bal});
@@ -249,9 +257,96 @@ let add_balance = async (req,res,next) => {
 
 }
 
+// get bet history
+let get_bet_history = async (req,res,next) => {
+ req.body.id
+ const schema = Joi.object({
+  id : Joi.string().required(),
+  role : Joi.string().required()
+});
+const id = {
+  id : req.body.id,
+  role : req.body.role
+};
+const validated_body = schema.validate(id); 
+if(validated_body.value.role === "7"){
+  const bet_history = await Placebet.findAndCountAll({where : {client_id : validated_body.value.id}})
+  return res.status(200).send({
+    bet_history : bet_history,
+    message : responseMessage.BET_HISTORY_FOUND,
+    error : false
+  })
+
+}
+else if(validated_body.value.role === "8"){
+  const bet_history = await Placebet.findAndCountAll({where : {client_id : validated_body.value.id}});
+  console.log("bet_history",bet_history);
+  return res.status(400).send({
+    
+    message : responseMessage.BET_HISTORY_NOT_FOUND,
+    error : TRUE
+  })
+}
+else {
+  return res.status(400).send({
+    message : responseMessage.INCORRECT_BET_ID,
+    error : true
+  })
+}
+}
+// get transaction history
+let get_transaction_history = async (req,res,next) => {
+  req.body.id
+  const schema = Joi.object({
+   id : Joi.string().required(),
+   role : Joi.string().required()
+ });
+ const id = {
+   id : req.body.id,
+   role : req.body.role
+ };
+ const validated_body = schema.validate(id); 
+ if(validated_body.value.role === "7"){
+   let transaction_history = await Placebet.findAndCountAll({where : {client_id : validated_body.value.id}})
+   let count = transaction_history.count;
+   let trans_history ;
+   console.log("transaction_history.rows",transaction_history.count);
+   for(let i = 0;i<count;i++){
+    delete transaction_history.rows[i].dataValues.contact,
+    delete transaction_history.rows[i].dataValues.role,
+    delete transaction_history.rows[i].dataValues.num10
+    trans_history = transaction_history;
+  }
+  console.log("transaction history",transaction_history);
+   return res.status(200).send({
+    
+     transaction_history : trans_history,
+     message : responseMessage.TRANSACTION_HISTORY_FOUND,
+     error : false
+   })
+ 
+ }
+ else if(validated_body.value.role === "8"){
+   const transaction_history = await Placebet.findAndCountAll({where : {client_id : validated_body.value.id}});
+   return res.status(200).send({
+     
+     message : responseMessage.TRANSACTION_HISTORY_NOT_FOUND,
+     error : false
+   })
+ }
+ else {
+   return res.status(400).send({
+     message : responseMessage.INCORRECT_ID,
+     error : true
+   })
+ }
+ }
+
 module.exports = {
     place_bet: place_bet,
     get_placed_bet : get_placed_bet,
     gen_random : gen_random,
-    add_balance :add_balance
+    add_balance :add_balance,
+    get_bet_history : get_bet_history,
+    get_transaction_history : get_transaction_history
   };

@@ -45,9 +45,11 @@ const Client = dataAPI.define(
     },
     withdrawn_amount: {
       type: Sequelize.INTEGER,
+      defaultValue: 0,
     },
     balance: {
       type: Sequelize.INTEGER,
+      defaultValue: 0,
     },
     status: {
       type: Sequelize.STRING,
