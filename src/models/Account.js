@@ -6,8 +6,8 @@ const { Sequelize, DataTypes } = require("sequelize");
 const { dataAPI } = require("../../www/db/db");
 const { INTEGER } = require("sequelize");
 
-const Transaction = dataAPI.define(
-  "Transaction",
+const Account = dataAPI.define(
+  "Account",
   {
     transaction_id: {
       // Integer Datatype
@@ -68,6 +68,6 @@ const Transaction = dataAPI.define(
     modified_at : 'modified_at'
   }
 );
-Transaction.sync();
+Account.sync();
 
-module.exports = Transaction;
+module.exports = Account;

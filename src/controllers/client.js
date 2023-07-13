@@ -909,18 +909,20 @@ let find_player = async (req, res, next) => {
     console.log("i am validated body", req.client_id);
 
     if (req.client_id == "abc") {
-      const player_of_individual_role = await Client.findOne({
+      const player_and_guest_of_admin = await Client.findOne({
         user_name: validatedBody.value.user_name,
       });
-      if (player_of_individual_role) {
+      console.log("player_and_guest_of_admin", player_and_guest_of_admin);
+      //const amount = await Client.findOne({})
+      if (player_and_guest_of_admin) {
         return res.status(200).json({
-          data: player_of_individual_role,
+          data: player_and_guest_of_admin,
           message: responseMessage.PLAYERS_FOUND,
           error: false,
         });
       } else {
-        return res.status(200).json({
-          data: player_of_individual_role,
+        return res.status(404).json({
+          data: player_and_guest_of_admin,
           message: responseMessage.NO_PLAYERS,
           error: true,
         });
@@ -939,7 +941,7 @@ let find_player = async (req, res, next) => {
           error: false,
         });
       } else {
-        return res.status(200).json({
+        return res.status(404).json({
           data: player_of_individual_role,
           message: responseMessage.NO_PLAYERS,
           error: true,

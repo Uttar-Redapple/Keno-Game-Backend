@@ -9,5 +9,7 @@ module.exports.setRouter = (app) => {
   app.post (`${baseUrl}/place_bet`,betController.place_bet);
   app.post (`${baseUrl}/get_placed_bet`,betController.get_placed_bet);
   app.get(`${baseUrl}/gen_random`, betController.gen_random);
+  //app.use(auth.verifyToken);
+  app.post (`${baseUrl}/add_balance`,betController.add_balance);
 };
 
