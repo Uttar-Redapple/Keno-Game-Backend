@@ -88,7 +88,7 @@ let place_bet = async (req, res,next) => {
     }
   
     }
-    else if(validated_body.value === "8"){
+    else if(validated_body.value.role === "8"){
     validated_body.value.client_id = guest_id;
     validated_body.value.bet_id = bet_id;
     
@@ -116,7 +116,6 @@ let place_bet = async (req, res,next) => {
         res.status(200).send({
           data: bet_created,
           message: responseMessage.BET_PLACED,
-          curr_bal : curr_bal,
           error: false,
         });
       } else {
