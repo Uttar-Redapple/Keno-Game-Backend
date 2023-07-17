@@ -74,7 +74,7 @@ const Placebet = dataAPI.define(
     user_name : {
       // Integer Datatype
       type: Sequelize.STRING,
-      defaultValue: "1",
+      defaultValue: "red_apple",
     },
     contact: {
       type: Sequelize.STRING,

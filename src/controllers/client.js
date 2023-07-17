@@ -248,7 +248,7 @@ let verify_phno = async (req, res, next) => {
             { otp: otp, otp_time: otpExpireTime },
             { where: { contact: validatedBody.value.contact } }
           );
-          return res.status(400).json({
+          return res.status(200).json({
             message: resMessage.NO_OTP,
             error: false,
             otp: otp,
