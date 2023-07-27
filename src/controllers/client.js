@@ -252,6 +252,7 @@ let verify_phno = async (req, res, next) => {
             message: resMessage.NO_OTP,
             error: false,
             otp: otp,
+            contact: validatedBody.value.contact
           });
         }
       } else {
@@ -266,6 +267,7 @@ let verify_phno = async (req, res, next) => {
           message: resMessage.OTP_SEND,
           error: false,
           otp: otp,
+          contact: validatedBody.value.contact
         });
       }
     }

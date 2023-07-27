@@ -11,6 +11,35 @@ const { Op, Transaction } = require("sequelize");
 const appConfig = require("../../config/appConfig");
 const pRNG = appConfig.pRNG;
 
+//generate draw id
+
+let draw_id = async (req,res,next) => {
+  try{
+    let draw_id = 80000  ;
+    setInterval(displayDrawid, 1200);
+
+function displayDrawid() {
+  draw_id = draw_id + 1;
+  console.log ("draw_id",draw_id);
+  
+}
+console.log ("draw_id",draw_id);
+return res.status(200).send({
+            message: responseMessage.DRAW_ID_GENERATED,
+            draw_id: draw_id,
+            error: false,
+            date  : new Date()
+
+})
+
+  }
+  catch(e){
+    console.log("error in draw_id ", e);
+
+  }
+
+}
+
 // save bet data
 
 let place_bet = async (req, res, next) => {
@@ -294,6 +323,7 @@ let get_bet_history = async (req, res, next) => {
       where: { client_id: validated_body.value.id },
     });
     console.log("bet_history", bet_history.count);
+    console.log("bet_history", bet_history.rows);
     if(bet_history.count!==0){
       return res.status(200).send({
         bet_history: bet_history,
@@ -371,12 +401,57 @@ let get_transaction_history = async (req, res, next) => {
     });
   }
 };
+//payout
+let payOut = async (req,res,next)=>{
+  try{
+    const payoutObject = {
+      
+      4 : "3",
+      5 : "6",
+      6 : "18",
+      7 : "120",
+      8 : "1800",
+      9 : "4200",
+      10: "5000"
+  };
+  console.log(payoutObject[5]);
+  let payOutAmount ;
+  //const payoutObject = JSON.parse(payoutJson);
+  const keys = Object.keys(payoutObject);
+  console.log(keys);
+  const quickPick = req.body.quickPick;
+  for(q of keys){
+      if(quickPick == keys)
+      payOutAmount = payoutObject[quickPick];
+      console.log(q);
+      console.log("i am quick pick",payoutObject[quickPick]);
+      return res.status(200).send({
+        payOutAmount : payOutAmount,
+        error : false
+    
+    })
+  
+  } 
+  console.log(quickPick);
+  //const y = JSON.parse(payoutObject);
+  //console.log(y);
+  
 
+  }
+  catch(e){
+    console.log("error is ",e);
+
+  }
+  
+
+}
 module.exports = {
+  draw_id : draw_id,
   place_bet: place_bet,
   get_placed_bet: get_placed_bet,
   gen_random: gen_random,
   add_balance: add_balance,
   get_bet_history: get_bet_history,
   get_transaction_history: get_transaction_history,
+  payOut : payOut
 };

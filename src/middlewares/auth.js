@@ -39,9 +39,9 @@ let firebaseAuth = async (req,res,next) => {
 let isAuthorizedSocket = async (socket,next) => {
   try {
     let socketToken;
-   //console.log("JWT token,", socket.handshake);
-    if (socket.handshake.headers.auth_token || socket.handshake.query.auth_token) {
-        socketToken = socket.handshake.headers.auth_token || socket.handshake.query.auth_token;
+   console.log("JWT token,", socket.handshake.headers.token);
+    if (socket.handshake.headers.token || socket.handshake.headers.query.token) {
+        socketToken = socket.handshake.headers.token || socket.handshake.headers.token;
     }
 
     const decoded = await token.verifyClaimWithoutSecret(socketToken);
@@ -53,7 +53,7 @@ let isAuthorizedSocket = async (socket,next) => {
 
     next();
 } catch (err) {
-    console.log('ERROR => ' + err);
+    console.log('ERROR => is' + err);
 }
 }
 

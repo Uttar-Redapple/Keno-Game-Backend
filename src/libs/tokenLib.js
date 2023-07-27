@@ -65,9 +65,9 @@ module.exports = {
           throw apiError.unauthorized();
         }
         else {
-          console.log("i am result",result)
-          //console.log("I am req.token",req.headers.token)
-          console.log("I am result_id",result.id)
+          console.log("i am result",result);
+          //console.log("I am req.token",req.headers.token);
+          console.log("I am result_id",result.id);
           
           req.client_id = result.id;
           // clientModel.findOne({where : { client_id: result.id }}).then(data => {
@@ -92,6 +92,20 @@ module.exports = {
       throw apiError.badRequest(responseMessage.NO_TOKEN);
     }
     next();
-  }
+  },
   
+async verifyClaimWithoutSecret(token)  {
+  return new Promise((resolve,reject)=>{
+    jwt.verify(token, process.env.ENC_KEY, function (err, decoded) {
+      if(err){
+        reject(err)
+      }
+      else{
+        resolve(decoded);
+      }  
+    });
+  })
+  
+  
+}
 }
