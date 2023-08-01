@@ -136,7 +136,7 @@ let payout_table = async (req,res,next) => {
   const payout_table = await PayOutTableServices.PayOutTableServices(query);
   console.log("payout_table",payout_table);
   res.status(200).send({
-    payout_table : payout_table,
+    data : payout_table,
     error : false
 
   }) 
