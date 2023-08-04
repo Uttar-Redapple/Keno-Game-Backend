@@ -9,7 +9,7 @@ const { INTEGER } = require("sequelize");
 const NumberTable = dataAPI.define(
   "NumberTable",
   {
-    number_drawn: {
+    number: {
       type: Sequelize.INTEGER,
     },
     occurance: {

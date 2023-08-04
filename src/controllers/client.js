@@ -169,6 +169,7 @@ let players_login = async (req, res, next) => {
             console.log("password match", passwordMatch);
             if (passwordMatch) {
               return res.status(200).json({
+                id : client.client_id,
                 user_name: client.dataValues.user_name,
                 message: resMessage.PWD_MATCHED,
                 error: false,
