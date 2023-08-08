@@ -142,7 +142,8 @@ let hot_and_cold = async(req,res,next) => {
 };
 const hot_numbers = await FindAllFromNumberTable(query_for_hot_no);
 const cold_numbers = await FindAllFromNumberTable(query_for_cold_no);
-    console.log("all_numbers",all_numbers);
+    //console.log("all_numbers",all_numbers);
+    console.log("hot_numbers",hot_numbers,"cold_numbers",cold_numbers);
     res.status(200).json({
         hot_numbers : hot_numbers,
         cold_numbers : cold_numbers

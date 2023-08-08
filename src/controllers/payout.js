@@ -135,44 +135,46 @@ let payout92_10 = async (req,res,next) => {
 let payout_table = async (req,res,next) => {
   const query = {attributes: ["numbers_match","payout"], raw: true};
   const payout_table = await PayOutTableServices(query);
-  let ob = payout_table[9].payout;
-  let obj = JSON.stringify(payout_table[9].payout);
-  let objj = JSON.parse(obj);
-  console.log("objj",typeof objj);
-      Object.keys(objj).forEach(key => {
-    if (obj[key] === 0) {
-      delete obj[key];
-    }
-    //console.log("obj",obj);
-  });
-  
-    
-    console.log(objj);
-    let x = '{"age":30, "city":90}';
-    let y = JSON.parse(x);
-    console.log("y",typeof y);
-  //console.log("obj",typeof ob);
-  //let pay_out_string = JSON.stringify(payout_table[i].payout);
-  //let objjj = JSON.parse(payout_table[i].payout);
-  // for (let i = 0;i<payout_table.length;i++){
-
-  //   //console.log(JSON.parse(payout_table[i].payout));
-  //   //let pay_out_string = JSON.stringify(payout_table[i].payout);
-  //   let obj = JSON.parse(payout_table[i].payout);
-  //   console.log("typeofobj",typeof obj);
-  //   console.log("obj",obj);
-  //    Object.keys(obj).forEach(key => {
+  let zero_removed = [];
+  // let ob = payout_table[9].payout;
+  // let obj = payout_table[9].payout;
+  // let objj = JSON.parse(obj);
+  // console.log("objj",typeof objj);
+  //     Object.keys(objj).forEach(key => {
   //   if (obj[key] === 0) {
   //     delete obj[key];
   //   }
   //   //console.log("obj",obj);
   // });
-  // console.log("obj",obj);
-  // }
-  //console.log("payout_table",payout_table);
+  
+    
+  //   console.log(objj);
+  //   let x = '{"age":30, "city":90}';
+  //   let y = JSON.parse(x);
+  //   console.log("y",typeof y);
+  //console.log("obj",typeof ob);
+  //let pay_out_string = JSON.stringify(payout_table[i].payout);
+  //let objjj = JSON.parse(payout_table[i].payout);
+  for (let i = 0;i<payout_table.length;i++){
+
+    //console.log(JSON.parse(payout_table[i].payout));
+    //let pay_out_string = JSON.stringify(payout_table[i].payout);
+    let obj = JSON.parse(payout_table[i].payout);
+    //console.log("typeofobj",typeof obj);
+    //console.log("obj",obj);
+     Object.keys(obj).forEach(key => {
+    if (obj[key] === 0) {
+      delete obj[key];
+    }
+    //console.log("obj",obj);
+  });
+  console.log("obj",obj);
+  zero_removed.push(obj);
+  }
   console.log("payout_table",payout_table);
+  console.log("zero_removed",zero_removed);
   res.status(200).send({
-    data : payout_table,
+    data : zero_removed,
     error : false
 
   }) 

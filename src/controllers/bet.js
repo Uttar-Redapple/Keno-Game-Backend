@@ -173,6 +173,7 @@ let place_bet = async (req, res, next) => {
 // get saved data
 
 let get_placed_bet = async (req, res, next) => {
+  console.log("get_placed_bet_deploy_testing");
   try {
     const schema = Joi.object({
       bet_id: Joi.string().required,
