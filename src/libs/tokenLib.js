@@ -62,7 +62,7 @@ module.exports = {
     if (req.headers.token) {
       jwt.verify(req.headers.token, process.env.ENC_KEY, (err, result) => {
         if (err) {
-          throw apiError.unauthorized();
+          console.log("err",err);//throw apiError.unauthorized();
         }
         else {
           console.log("i am result",result);
@@ -89,7 +89,11 @@ module.exports = {
         
       })
     } else {
-      throw apiError.badRequest(responseMessage.NO_TOKEN);
+      res.status(200).send({
+        error : true,
+        message : "please provide token"
+      })
+      //throw apiError.badRequest(responseMessage.NO_TOKEN);
     }
     next();
   },

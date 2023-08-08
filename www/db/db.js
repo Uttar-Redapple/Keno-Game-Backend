@@ -9,6 +9,7 @@ const redis = require('redis');
 const dbConfig = require("../../config/dbConfig.json")[mode];
 let dataAPI = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.password, dbConfig);
 const fs = require('fs');
+const auth = require("../../src/libs/tokenLib");
 
 
 const startDB = (app,db_type)=>{
