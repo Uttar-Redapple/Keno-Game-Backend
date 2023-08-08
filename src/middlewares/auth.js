@@ -38,13 +38,7 @@ let firebaseAuth = async (req,res,next) => {
 
 let isAuthorizedSocket = async (socket,next) => {
   try {
-    let socketToken;
-   console.log("JWT token,", socket.handshake.headers.token);
-    if (socket.handshake.headers.token || socket.handshake.headers.query.token) {
-        socketToken = socket.handshake.headers.token || socket.handshake.headers.token;
-    }
-
-    const decoded = await token.verifyClaimWithoutSecret(socketToken);
+    const decoded = await token.verifyClaimWithoutSecret(socket.handshake.query.token);
 
     if (!decoded) {
         console.log("Invalid token");

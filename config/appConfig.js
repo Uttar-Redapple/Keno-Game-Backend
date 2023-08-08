@@ -1,5 +1,9 @@
 const dbConfig = require('./dbConfig.json')[process.env.NODE_ENV]
 let admin = require('firebase-admin');
+const Queue = require("../src/algo/dataStructure");
+
+// Data structures
+const queue = new Queue();
 let AWS = require('aws-sdk');
 AWS.config.update({
     region: process.env.AWS_REGION,
@@ -44,5 +48,6 @@ appConfig.AWS = AWS;
 
 
 appConfig.baseUrl = 'http://staging.redappletech.com:5000/';
+appConfig.queue = queue;
 
 module.exports = appConfig;
