@@ -64,7 +64,7 @@ let get_date_and_time = async (req, res, next) => {
 
 let login = async (req, res, next) => {
   try {
-    console.log("secretOrPrivateKey is ", process.env.ENC_KEY);
+    console.log("secretOrPrivateKey is ", process.env.ENC_KEY,{expiresIn : 86400});
     console.log("i am client", req.body.e_mail);
     const client = await Client.findOne({ where: { e_mail: req.body.e_mail } });
 
@@ -83,7 +83,7 @@ let login = async (req, res, next) => {
           if (passwordMatch) {
             token = jwt.sign(
               { id: client.client_id, email: client.e_mail },
-              process.env.ENC_KEY
+              process.env.ENC_KEY,{expiresIn : 86400}
             );
             res.status(200).json({
               message: resMessage.LOGIN_SUCCESS,
@@ -143,7 +143,7 @@ let players_login = async (req, res, next) => {
 
     const validatedBody = schema.validate(player);
     console.log("i am validated body", validatedBody);
-    console.log("secretOrPrivateKey is ", process.env.ENC_KEY);
+    console.log("secretOrPrivateKey is ", process.env.ENC_KEY,{expiresIn : 86400});
     console.log("validatedBody.value.e_mail", validatedBody.value.e_mail);
     console.log("i am client", validatedBody.value.e_mail);
     const client = await Client.findOne({
@@ -215,7 +215,7 @@ let verify_phno = async (req, res, next) => {
 
   const validatedBody = schema.validate(player);
   console.log("i am validated body", validatedBody);
-  console.log("secretOrPrivateKey is ", process.env.ENC_KEY);
+  console.log("secretOrPrivateKey is ", process.env.ENC_KEY,{expiresIn : 86400});
   const ph_no_check = await Client.findOne({
     where: { contact: validatedBody.value.contact },
   });
@@ -305,7 +305,7 @@ let verify_otp = async (req, res, next) => {
         id: ph_no_check.dataValues.client_id,
         e_mail: ph_no_check.dataValues.e_mail,
       },
-      process.env.ENC_KEY
+      process.env.ENC_KEY,{expiresIn : 86400}
     );
     console.log("token", token);
     return res.status(200).json({
@@ -325,7 +325,7 @@ let verify_otp = async (req, res, next) => {
 
 let other_role_login = async (req, res, next) => {
   try {
-    console.log("secretOrPrivateKey is ", process.env.ENC_KEY);
+    console.log("secretOrPrivateKey is ", process.env.ENC_KEY,{expiresIn : 86400});
     console.log("i am client", req.body.e_mail);
     const client = await Client.findOne({ where: { e_mail: req.body.e_mail } });
     if (!client) {
@@ -346,7 +346,7 @@ let other_role_login = async (req, res, next) => {
             if (passwordMatch) {
               token = jwt.sign(
                 { id: client.client_id, email: client.e_mail },
-                process.env.ENC_KEY
+                process.env.ENC_KEY,{expiresIn : 86400}
               );
               res.status(200).json({
                 message: resMessage.LOGIN_SUCCESS,

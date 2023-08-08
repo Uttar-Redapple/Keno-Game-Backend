@@ -6,6 +6,8 @@ const validator = require("../middlewares/validator");
 
 module.exports.setRouter = (app) => {
   let baseUrl = `${appConfig.apiVersion}`;
+  app.use(auth.verifyToken);
+  const auth = require("../libs/tokenLib");
   app.get (`${baseUrl}/find_guest`,clientController.find_guest);
   
 };

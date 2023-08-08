@@ -5,15 +5,27 @@ const {FindAllFromNumberTable,UpdateNumberTable} = NumberTableServices;
 const appConfig = require("../../config/appConfig");
 const pRNG = appConfig.pRNG;
 let previous_10_bet_draw = async (req,res,next) => {
+  let numbers = [];
     const query = {
         order: [ [ 'draw_id', 'DESC']],
         limit: 10,
         raw : true
     };
     const draw_bet = await DrawTableFindAll(query);
+    for(let i = 0;i<draw_bet.length;i++){
+      let num_arr = draw_bet[i].numbers_drawn.split(",");
+      sorted_arr = num_arr.sort(function(a, b){return a - b})
+      numbers.push(sorted_arr);
+      delete draw_bet[i].numbers_drawn;
+    delete draw_bet[i].createdAt;
+    delete draw_bet[i].updatedAt;
+    delete draw_bet[i].deletedAt;
+    }
+    
     console.log("draw_bet",draw_bet);
     res.status(200).send({
-        draw_bet :draw_bet,
+        draw_id :draw_bet,
+        numbers_drawn : numbers,
         error : false 
     })
     
@@ -142,7 +154,8 @@ let hot_and_cold = async(req,res,next) => {
 };
 const hot_numbers = await FindAllFromNumberTable(query_for_hot_no);
 const cold_numbers = await FindAllFromNumberTable(query_for_cold_no);
-    console.log("all_numbers",all_numbers);
+    //console.log("all_numbers",all_numbers);
+    console.log("hot_numbers",hot_numbers,"cold_numbers",cold_numbers);
     res.status(200).json({
         hot_numbers : hot_numbers,
         cold_numbers : cold_numbers
