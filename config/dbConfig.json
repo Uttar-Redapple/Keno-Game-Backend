@@ -1,44 +1,44 @@
 {
-    "dev": {
-        "username": "ra_stg_dbuser",
-        "password": "*y!9dKNR*MjVSw_U",
-        "database": "keno",
-        "host": "staging.redappletech.com",
-        "port": "3306",
-        "dialect": "mysql",
-        "dialectOptions": {
-            "charset": "utf8mb4_unicode_ci"
-        },
-        "datetime": "yyyy-MM-dd HH:mm:ss",
-        "redis_url":"redis://localhost:6379",
-        "mq_url":"amqp://localhost:5672"
+  "dev": {
+    "username": "ra_stg_dbuser",
+    "password": "*y!9dKNR*MjVSw_U",
+    "database": "keno",
+    "host": "staging.redappletech.com",
+    "port": "3306",
+    "dialect": "mysql",
+    "dialectOptions": {
+      "charset": "utf8mb4_unicode_ci"
     },
-    "stg": {
-        "username": "mongo_user",
-        "password": "^zTr57e5Wo6H",
-        "database": "interview_platform_stg",
-        "host": "staging.redappletech.com",
-        "port": "8081",
-        "dialect": "mongo",
-        "dialectOptions": {
-            "charset": "utf8mb4_unicode_ci"
-        },
-        "datetime": "yyyy-MM-dd HH:mm:ss",
-        "redis_url":"redis://localhost:6379",
-        "mq_url":"amqp://localhost:5672"
+    "datetime": "yyyy-MM-dd HH:mm:ss",
+    "redis_url": "redis://localhost:6379",
+    "mq_url": "amqp://localhost:5672"
+  },
+  "stg": {
+    "username": "mongo_user",
+    "password": "^zTr57e5Wo6H",
+    "database": "interview_platform_stg",
+    "host": "staging.redappletech.com",
+    "port": "8081",
+    "dialect": "mongo",
+    "dialectOptions": {
+      "charset": "utf8mb4_unicode_ci"
     },
-    "prd": {
-        "username": "mongo_user",
-        "password": "^zTr57e5Wo6H",
-        "database": "interview_platform_stg",
-        "host": "mongodb",
-        "port": "27017",
-        "dialect": "mongo",
-        "dialectOptions": {
-            "charset": "utf8mb4_unicode_ci"
-        },
-        "datetime": "yyyy-MM-dd HH:mm:ss",
-        "redis_url":"redis://redis:6379",
-        "mq_url":"amqp://rabbitmq:5672"
-    }
+    "datetime": "yyyy-MM-dd HH:mm:ss",
+    "redis_url": "redis://localhost:6379",
+    "mq_url": "amqp://localhost:5672"
+  },
+  "prd": {
+    "username": "mongo_user",
+    "password": "^zTr57e5Wo6H",
+    "database": "interview_platform_stg",
+    "host": "mongodb",
+    "port": "27017",
+    "dialect": "mongo",
+    "dialectOptions": {
+      "charset": "utf8mb4_unicode_ci"
+    },
+    "datetime": "yyyy-MM-dd HH:mm:ss",
+    "redis_url": "redis://redis:6379",
+    "mq_url": "amqp://rabbitmq:5672"
+  }
 }
