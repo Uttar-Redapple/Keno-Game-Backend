@@ -43,5 +43,4 @@ process.on("unhandledRejection", (reason, p) => {
 });
 
 /* Start Database*/
-console.log("I am process", process.env.DATABASE_TYPE);
 database.startDB(app, process.env.DATABASE_TYPE);
