@@ -64,7 +64,7 @@ let get_date_and_time = async (req, res, next) => {
 
 let login = async (req, res, next) => {
   try {
-    console.log("secretOrPrivateKey is ", process.env.ENC_KEY,{expiresIn : 86400});
+    console.log("secretOrPrivateKey is ", process.env.ENC_KEY);
     console.log("i am client", req.body.e_mail);
     const client = await Client.findOne({ where: { e_mail: req.body.e_mail } });
 

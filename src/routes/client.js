@@ -12,9 +12,9 @@ module.exports.setRouter = (app) => {
   app.post(`${baseUrl}/other_role_login`, clientController.other_role_login);
   app.post(`${baseUrl}/verify_phno`, clientController.verify_phno);
   app.post(`${baseUrl}/verify_otp`, clientController.verify_otp);
-  app.use(auth.verifyToken);
+  //app.use(auth.verifyToken);
   
-  app.get(`${baseUrl}/find_all_clients`, clientController.find_all_clients);
+  app.get(`${baseUrl}/find_all_clients`,auth.verifyToken, clientController.find_all_clients);
   app.post(`${baseUrl}/create`, clientController.create);
   app.post(`${baseUrl}/edit_created_client`,clientController.edit_created_client);
   app.post(`${baseUrl}/delete_client`, clientController.delete_client);

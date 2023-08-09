@@ -89,11 +89,11 @@ module.exports = {
         
       })
     } else {
-      res.status(200).send({
-        error : true,
-        message : "please provide token"
-      })
-      //throw apiError.badRequest(responseMessage.NO_TOKEN);
+      // res.status(200).send({
+      //   error : true,
+      //   message : "please provide token"
+      // })
+      throw apiError.badRequest(responseMessage.NO_TOKEN);
     }
     next();
   },
