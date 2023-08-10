@@ -42,26 +42,26 @@ let setNSP = (gameIo) => {
     });
 
     eventEmitter.on('start-timer', (round_id) => {
-        let counter = process.env.TURNTIME;
-        // let time_pivot = 1;
-        // let time_fract = 1/counter;
-        console.log(`Timer started for round ${round_id} Counter : ${counter}`);
-        turnCountdown = setInterval(function () {
-            gameIo.emit("update-timer", { next_draw_id: round_id, counter: fancyTimeFormat(counter)});
-            counter--
-            // time_pivot -= time_fract;
-            //console.log(`Counter : ${counter}`);
-            if (counter == 0) {
-                console.log(`Timer stopped for ${round_id} :: starting draw`);
-                clearInterval(turnCountdown);
-                //console.log('time up fold and updating bet');
+        gameIo.emit("start-timer",null);
+        setTimeout(()=>{
+            let counter = process.env.TURNTIME;
+            console.log(`Timer started for round ${round_id} Counter : ${counter}`);
+            turnCountdown = setInterval(function () {
                 gameIo.emit("update-timer", { next_draw_id: round_id, counter: fancyTimeFormat(counter)});
-                startDraw();
-            }
-        }, 1000);
+                counter--
+                //console.log(`Counter : ${counter}`);
+                if (counter == 0) {
+                    console.log(`Timer stopped for ${round_id} :: starting draw`);
+                    clearInterval(turnCountdown);
+                    gameIo.emit("update-timer", { next_draw_id: round_id, counter: fancyTimeFormat(counter)});
+                    startDraw();
+                }
+            }, 1000);
+        },2500)
     });
 
     eventEmitter.on('start-draw', (queue) => {
+        gameIo.emit("start-draw",null);
         for(let i=0;i<queue.size;i++){
             setTimeout(()=>{
                 let data = queue.dequeue();
@@ -70,23 +70,18 @@ let setNSP = (gameIo) => {
                 }else{
                     eventEmitter.emit("stop-draw",data.data);
                 }
-            },i * 1500);
+            },i * 2500);
         }
-        // if(draw.i == 19){
-        //     eventEmitter.emit('stop-draw',{
-        //         draw_id:draw.draw_id
-        //     })
-        // }
     });
 
     eventEmitter.on('stop-draw', (draw) => {
         setTimeout(()=>{
             gameIo.emit("stop-draw",draw);
-        },1500);
+        },2500);
 
         setTimeout(()=>{
             mainGameLoop();
-        },90 * 1000);
+        },30 * 1000);
     });
 }
 
