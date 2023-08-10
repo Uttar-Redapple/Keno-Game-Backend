@@ -62,16 +62,18 @@ let setNSP = (gameIo) => {
 
     eventEmitter.on('start-draw', (queue) => {
         gameIo.emit("start-draw",null);
-        for(let i=0;i<queue.size;i++){
-            setTimeout(()=>{
-                let data = queue.dequeue();
-                if(data.event == "start-draw"){
-                    gameIo.emit("update-draw",data.data.data);
-                }else{
-                    eventEmitter.emit("stop-draw",data.data);
-                }
-            },i * 2500);
-        }
+        setTimeout(()=>{
+            for(let i=0;i<queue.size;i++){
+                setTimeout(()=>{
+                    let data = queue.dequeue();
+                    if(data.event == "start-draw"){
+                        gameIo.emit("update-draw",data.data.data);
+                    }else{
+                        eventEmitter.emit("stop-draw",data.data);
+                    }
+                },i * 2500);
+            }
+        },2500)
     });
 
     eventEmitter.on('stop-draw', (draw) => {
