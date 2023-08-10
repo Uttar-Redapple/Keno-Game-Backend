@@ -1,4 +1,5 @@
 let setNSP = (gameIo) => {
+    let state = null;
     let turnCountdown = {};
     let { eventEmitter} = require('../../config/appConfig');
     let auth = require('../middlewares/auth');
@@ -32,7 +33,11 @@ let setNSP = (gameIo) => {
         /**
          * Socket Events For Application Logic.
         **/
-
+        socket.on('get-current-state',async ()=>{
+            gameIo.emit("current-state",{
+                state:state
+            });
+        })
         /**
          * Disconnection Handler.
         **/
@@ -42,6 +47,7 @@ let setNSP = (gameIo) => {
     });
 
     eventEmitter.on('start-timer', (round_id) => {
+        state = 1;
         gameIo.emit("start-timer",null);
         setTimeout(()=>{
             let counter = process.env.TURNTIME;
@@ -61,6 +67,7 @@ let setNSP = (gameIo) => {
     });
 
     eventEmitter.on('start-draw', (queue) => {
+        state = 2;
         gameIo.emit("start-draw",null);
         setTimeout(()=>{
             for(let i=0;i<queue.size;i++){
@@ -77,6 +84,7 @@ let setNSP = (gameIo) => {
     });
 
     eventEmitter.on('stop-draw', (draw) => {
+        state = 3;
         setTimeout(()=>{
             gameIo.emit("stop-draw",draw);
         },2500);
