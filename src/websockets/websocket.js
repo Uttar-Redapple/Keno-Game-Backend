@@ -87,7 +87,7 @@ let setNSP = (gameIo) => {
         state = 3;
         setTimeout(()=>{
             gameIo.emit("stop-draw",draw);
-        },2500);
+        },3000);
 
         setTimeout(()=>{
             mainGameLoop();
