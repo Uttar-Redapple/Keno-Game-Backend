@@ -1,7 +1,7 @@
 const path = require("path");
 const clientController = require("../controllers/client");
 const appConfig = require("./../../config/appConfig");
-const auth = require("../libs/tokenLib");
+const auth = require("../middlewares/auth");
 const validator = require("../middlewares/validator");
 
 module.exports.setRouter = (app) => {
@@ -14,7 +14,7 @@ module.exports.setRouter = (app) => {
   app.post(`${baseUrl}/verify_otp`, clientController.verify_otp);
   //app.use(auth.verifyToken);
   
-  app.get(`${baseUrl}/find_all_clients`,auth.verifyToken, clientController.find_all_clients);
+  app.get(`${baseUrl}/find_all_clients`, clientController.find_all_clients);
   app.post(`${baseUrl}/create`, clientController.create);
   app.post(`${baseUrl}/edit_created_client`,clientController.edit_created_client);
   app.post(`${baseUrl}/delete_client`, clientController.delete_client);

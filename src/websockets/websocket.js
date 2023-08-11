@@ -93,6 +93,9 @@ let setNSP = (gameIo) => {
             mainGameLoop();
         },30 * 1000);
     });
+    eventEmitter.on('number_match', (draw) => {
+        
+    });
 }
 
 module.exports = {
