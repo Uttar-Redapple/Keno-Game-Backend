@@ -316,6 +316,8 @@ let verify_otp = async (req, res, next) => {
     return res.status(200).json({
       message: responseMessage.LOGIN,
       token: token,
+      user_name : ph_no_check.user_name,
+      client_id : ph_no_check.client_id,
       error: false,
     });
   } else {

@@ -9,6 +9,8 @@ const bcrypt = require("bcrypt");
 const responseMessage = require("../libs/responseMessage");
 const { Op, Transaction } = require("sequelize");
 const appConfig = require("../../config/appConfig");
+const DrawTableServices = require("../services/bet_draw");
+const {DrawTableFindAll,FindLastDraw,SaveToDraw} = DrawTableServices ;
 const pRNG = appConfig.pRNG;
 
 //generate draw id
@@ -46,7 +48,7 @@ let place_bet = async (req, res, next) => {
   try {
     let guest_id = uuidv4();
     let bet_id = uuidv4();
-    let draw_id = uuidv4();
+    //let draw_id = uuidv4();
     const schema = Joi.object({
       contact: Joi.number().required(),
       user_name: Joi.string().required(),
@@ -69,6 +71,15 @@ let place_bet = async (req, res, next) => {
       draw_time: req.body.draw_time,
       contact: req.body.contact,
     };
+    const query_for_last_draw = {
+      order: [ [ 'draw_id', 'DESC']],
+      limit: 1,
+      raw : true
+  };
+    const last_draw = await FindLastDraw(query_for_last_draw);
+    let {draw_id} = last_draw ;
+    draw_id = draw_id+1;
+    console.log("last_draw",draw_id);
     const validated_body = schema.validate(bet);
     if (validated_body.value.role === "7") {
       const player = await Client.findOne({
@@ -76,6 +87,7 @@ let place_bet = async (req, res, next) => {
       });
       validated_body.value.client_id = player.dataValues.client_id;
       validated_body.value.bet_id = bet_id;
+      validated_body.value.draw_id = draw_id;
 
       console.log("validatedBody", validated_body.value);
       const amount = await Client.findOne({
@@ -125,7 +137,7 @@ let place_bet = async (req, res, next) => {
     } else if (validated_body.value.role === "8") {
       validated_body.value.client_id = guest_id;
       validated_body.value.bet_id = bet_id;
-
+      validated_body.value.draw_id = draw_id;
       console.log("validatedBody", validated_body.value);
       const bet_created = await Placebet.create(validated_body.value);
       const check_guest = await Guest.findOne({
@@ -174,8 +186,16 @@ let place_bet = async (req, res, next) => {
 //save bet
 let save_multiple_bet = async (req,res,next) => {
   try{
-    let guest_id = uuidv4();
-    let bet_id = uuidv4();
+    //let guest_id = uuidv4();
+    //let bet_id = uuidv4();
+    console.log(req.body);
+    const length = req.body.length;
+    console.log("length",length);
+    for (i of req.body){
+      i.draw_id = uuidv4();
+      i.bet_id = uuidv4();
+
+    }
     console.log(req.body);
     const bet_created = await Placebet.bulkCreate(req.body);
     console.log(bet_created);
@@ -192,6 +212,7 @@ let save_multiple_bet = async (req,res,next) => {
 // get saved data
 
 let get_placed_bet = async (req, res, next) => {
+  
   console.log("get_placed_bet_deploy_testing");
   try {
     const schema = Joi.object({
@@ -365,7 +386,7 @@ let get_bet_history = async (req, res, next) => {
     
   } else {
     return res.status(400).send({
-      message: responseMessage.INCORRECT_BET_ID,
+      message: responseMessage.INCORRECT_CLIENT_ID,
       error: true,
     });
   }
