@@ -10,6 +10,7 @@ const PayOutTableServices = async(query)=>{
 }
 
 module.exports ={
-    PayOutTableServices : PayOutTableServices
-
+    PayOutTableServices : PayOutTableServices,
+    
+    
 }  ;

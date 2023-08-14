@@ -12,7 +12,7 @@ const PayOutTable = dataAPI.define(
     table_percent: {
       type: Sequelize.INTEGER,
     },
-    numbers_match: {
+    numbers_to_match: {
       // Integer Datatype
       type: Sequelize.INTEGER,
     },
