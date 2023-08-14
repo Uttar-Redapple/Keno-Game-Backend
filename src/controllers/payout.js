@@ -136,6 +136,7 @@ let payout_table = async (req,res,next) => {
   try{
     const query = {attributes: ["numbers_match","payout"], raw: true};
   const payout_table = await PayOutTableServices(query);
+  console.log("payout_table",payout_table);
   let zero_removed = [];
   // let ob = payout_table[9].payout;
   // let obj = payout_table[9].payout;
@@ -179,7 +180,7 @@ let payout_table = async (req,res,next) => {
     error : false
 
   }) 
-
+  next();
   }
   catch(e){
     console.log("error",e);
