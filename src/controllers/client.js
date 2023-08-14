@@ -168,11 +168,16 @@ let players_login = async (req, res, next) => {
 
             console.log("password match", passwordMatch);
             if (passwordMatch) {
+              token = jwt.sign(
+                { id: client.client_id, email: client.e_mail },
+                process.env.ENC_KEY,{expiresIn : 86400}
+              );
               return res.status(200).json({
                 id : client.client_id,
                 user_name: client.dataValues.user_name,
                 message: resMessage.PWD_MATCHED,
                 error: false,
+                token : token
               });
             } else {
               return res

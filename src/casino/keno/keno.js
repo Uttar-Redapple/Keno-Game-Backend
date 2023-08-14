@@ -1,5 +1,7 @@
 const DrawTableServices = require("../../services/bet_draw");
 const NumberTableServices = require("../../services/number_count");
+const PayoutTableService = require("../../services/payoutTable");
+const {PayOutTableServices} = PayoutTableService;
 const {DrawTableFindAll,FindLastDraw,SaveToDraw} = DrawTableServices ;
 const {FindAllFromNumberTable,UpdateNumberTable} = NumberTableServices;
 const appConfig = require("../../../config/appConfig");
@@ -133,7 +135,81 @@ eventEmitter.on("update-db",async (data)=>{
     }
 
 })
+
+let number_match = async (draw_id,selected_numbers_by_user) => {
+  const query_to_find_numbers_by_draw_id = {where : {draw_id : draw_id}};
+  const twenty_numbers = await FindLastDraw(query_to_find_numbers_by_draw_id);
+  const matched_numbers = findCommonElements(selected_numbers_by_user,twenty_numbers);
+  const numbers_selected = selected_numbers_by_user.length;
+  const query_to_find_a_particular_payout = {
+
+  };
+  const payout_for_a_particular_select = PayOutTableServices(query);
+  return {
+         matched_numbers : matched_numbers,
+         win_amount : win_amount
+        } ;
+}
+let findCommonElements = (arr1, arr2) => {
+  
+  const commonElements = [];
+  
+  for (const element of arr1) {
+      if (arr2.includes(element)) {
+          commonElements.push(element);
+      }
+  }
+
+  return commonElements;
+}
+// eventEmitter.on("update-db",async (data)=>{
+//   console.log("Updating DB : ",data)
+//   let draw_id = data.draw_id;
+//   let twenty_random_number_without_repetition = data.draw_array;
+//   let twenty_random_number_without_repetition_string = twenty_random_number_without_repetition.join();
+//   const query_for_save_to_draw = {
+//     draw_id : draw_id,
+//     numbers_drawn : twenty_random_number_without_repetition_string,
+//     raw : true
+// };
+//   const save_to_draw = await SaveToDraw(query_for_save_to_draw); 
+//   console.log("save_to_draw",save_to_draw); 
+//   query_for_all_numbers = {raw : true};
+//   const all_numbers = await FindAllFromNumberTable(query_for_all_numbers);
+  
+  
+//   for(let i = 0 ;i<twenty_random_number_without_repetition.length;i++){
+//     for(let j = 0;j<80;j++){
+//         if(twenty_random_number_without_repetition[i] == all_numbers[j].number){
+//             all_numbers[j].occurance++ ;
+
+//         }
+//       }
+
+//   }
+//   console.log("all_numbers",all_numbers);
+//   for(let i = 0;i<all_numbers.length;i++){
+//     query_for_update = {
+//       occurance : {occurance : all_numbers[i].occurance},
+//       condition : { where :{number: all_numbers[i].number} }, 
+//       options : { raw : true }
+
+//     };
+//     console.log("all_numbers.occurance",all_numbers[i].occurance);
+//     const updatedTable = await UpdateNumberTable(query_for_update);
+
+//   }
+
+// })
+eventEmitter.on("all_number",async ()=>{
+  console.log("____all_number : ");
+  
+})
+
+
 module.exports = {
     mainGameLoop : gameLoop,
-    startDraw : startDraw
+    startDraw : startDraw,
+    number_match :number_match,
+    
 }

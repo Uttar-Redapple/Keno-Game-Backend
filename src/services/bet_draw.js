@@ -19,6 +19,11 @@ const SaveToDraw = async(query) => {
     return save_to_draw ;
 
 }
+// const FindDrawByDrawId = async(query) => {
+//     const find_draw_numbers = DrawTable.create(query);
+//     return find_draw_numbers ;
+
+// }
 
 module.exports ={
     DrawTableFindAll : DrawTableFindAll,

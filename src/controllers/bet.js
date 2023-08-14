@@ -166,9 +166,28 @@ let place_bet = async (req, res, next) => {
       });
     }
   } catch (error) {
+    console.log(error);
     return next(error);
   }
 };
+
+//save bet
+let save_multiple_bet = async (req,res,next) => {
+  try{
+    let guest_id = uuidv4();
+    let bet_id = uuidv4();
+    console.log(req.body);
+    const bet_created = await Placebet.bulkCreate(req.body);
+    console.log(bet_created);
+    return res.status(401).send({
+      message: bet_created,
+      error: false,
+    });
+  } catch (error) {
+    return next(error);
+  }
+  
+}
 
 // get saved data
 
@@ -454,5 +473,6 @@ module.exports = {
   add_balance: add_balance,
   get_bet_history: get_bet_history,
   get_transaction_history: get_transaction_history,
-  payOut : payOut
+  payOut : payOut,
+  save_multiple_bet : save_multiple_bet
 };
