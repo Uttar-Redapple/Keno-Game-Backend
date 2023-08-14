@@ -307,6 +307,8 @@ let add_balance = async (req, res, next) => {
 
 // get bet history
 let get_bet_history = async (req, res, next) => {
+  try{
+    console.log("req.user",req.user);
   req.body.id;
   const schema = Joi.object({
     id: Joi.string().required(),
@@ -367,6 +369,13 @@ let get_bet_history = async (req, res, next) => {
       error: true,
     });
   }
+
+  }
+  catch(e){
+    console.log("e",e);
+
+  }
+  
 };
 // get transaction history
 let get_transaction_history = async (req, res, next) => {
