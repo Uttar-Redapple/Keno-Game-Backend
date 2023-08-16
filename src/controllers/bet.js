@@ -189,18 +189,34 @@ let save_multiple_bet = async (req,res,next) => {
     //let guest_id = uuidv4();
     //let bet_id = uuidv4();
     console.log(req.body);
-    const length = req.body.length;
-    console.log("length",length);
-    for (i of req.body){
-      i.draw_id = uuidv4();
+    const length = req.body.multiple_place_bet.length;
+    const query_for_last_draw = {
+      order: [ [ 'draw_id', 'DESC']],
+      limit: 1,
+      raw : true
+  };
+    const last_draw = await FindLastDraw(query_for_last_draw);
+    let {draw_id} = last_draw ;
+    //draw_id = draw_id+1;
+    console.log("last_draw",draw_id);
+    //console.log("length",length);
+    for (i of req.body.multiple_place_bet){
+      i.draw_id = draw_id+1;
       i.bet_id = uuidv4();
+      i.bet_amount = i.amount;
 
     }
-    console.log(req.body);
-    const bet_created = await Placebet.bulkCreate(req.body);
-    console.log(bet_created);
-    return res.status(401).send({
-      message: bet_created,
+    //req.body.multiple_place_bet.bet_amount = req.body.multiple_place_bet.amount;
+    delete req.body.multiple_place_bet.pays;
+    delete req.body.multiple_place_bet.toWin;
+    delete req.body.multiple_place_bet.time;
+    delete req.body.multiple_place_bet.toamount;
+    delete req.body.multiple_place_bet.amount;
+    console.log("req.body",req.body.multiple_place_bet);
+    const bet_created = await Placebet.bulkCreate(req.body.multiple_place_bet);
+    console.log("bet_created",bet_created);
+    return res.status(200).send({
+      message: responseMessage.BET_PLACED_SUCCESSFULLY,
       error: false,
     });
   } catch (error) {

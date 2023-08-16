@@ -31,6 +31,7 @@ module.exports = {
   PHNO_VERIFIED : "Your phone number has been verified",
   PASSWORD_EMPTY : "Enter password",
   BET_PLACED : "Your bet has been placed and a bet ID has been generated",
+  BET_PLACED_SUCCESSFULLY : "Your bet has been placed successfully",
   BET_COULD_NOT_PLACED : "Sorry ! , Your bet request can not be generated",
   BET_FOUND : "Here is your placed bet",
   BET_NOT_FOUND : "Sorry ! no bet is found in this bet_id",
