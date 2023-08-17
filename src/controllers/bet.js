@@ -9,9 +9,15 @@ const bcrypt = require("bcrypt");
 const responseMessage = require("../libs/responseMessage");
 const { Op, Transaction } = require("sequelize");
 const appConfig = require("../../config/appConfig");
+const FindBet = require("../services/place_bet");
+const {FindBetFromDrawId,FindAllBet} = FindBet;
 const DrawTableServices = require("../services/bet_draw");
 const {DrawTableFindAll,FindLastDraw,SaveToDraw} = DrawTableServices ;
+const PayOutTableService = require("../services/payoutTable");
+const {PayOutTableServices} = PayOutTableService ;
 const pRNG = appConfig.pRNG;
+const DrawTable = require("../models/Draw");
+const { dataAPI } = require('../../www/db/db');
 
 //generate draw id
 
@@ -357,10 +363,17 @@ let get_bet_history = async (req, res, next) => {
   };
   const validated_body = schema.validate(id);
   if (validated_body.value.role === "7") {
-    const bet_history = await Placebet.findAndCountAll({
-      where: { client_id: validated_body.value.id },
-    });
-    if(bet_history.count!==0){
+
+    let sql = "select dt.draw_id,case when dt.draw_id is null then '-' else 999 end as winamount ,pb.*,dt.* from Placebet pb left join DrawTable dt ON pb.draw_id=dt.draw_id where pb.client_id='1'";
+        
+        let bet_history = await dataAPI.query(sql, { type: dataAPI.QueryTypes.SELECT });
+        let result = bet_history[0];
+        console.log("result",bet_history);
+    // const bet_history = await Placebet.findAndCountAll({
+    //   where: { client_id: validated_body.value.id },
+    // });
+    console.log("bet_history",bet_history);
+    if(bet_history.length!==0){
       return res.status(200).send({
         bet_history: bet_history,
         message: responseMessage.BET_HISTORY_FOUND,
