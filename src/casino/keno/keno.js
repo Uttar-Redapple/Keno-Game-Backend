@@ -1,6 +1,7 @@
 const DrawTableServices = require("../../services/bet_draw");
 const NumberTableServices = require("../../services/number_count");
 const PayoutTableService = require("../../services/payoutTable");
+const number_controller = require("../../controllers/number_match")
 const {PayOutTableServices} = PayoutTableService;
 const {DrawTableFindAll,FindLastDraw,SaveToDraw} = DrawTableServices ;
 const {FindAllFromNumberTable,UpdateNumberTable} = NumberTableServices;
@@ -8,7 +9,6 @@ const appConfig = require("../../../config/appConfig");
 const { eventEmitter } = require("../../../config/appConfig");
 const pRNG = appConfig.pRNG;
 let queue = appConfig.queue;
-
 
 //previous_draw numbers
 let previous_draw = async() => {
@@ -136,37 +136,39 @@ eventEmitter.on("update-db",async (data)=>{
 
 })
 
-let number_match = async (draw_id,selected_numbers_by_user) => {
-  const query_to_find_numbers_by_draw_id = {where : {draw_id : draw_id}};
-  const twenty_numbers = await FindLastDraw(query_to_find_numbers_by_draw_id);
-  const matched_numbers = findCommonElements(selected_numbers_by_user,twenty_numbers);
-  const numbers_selected = selected_numbers_by_user.length;
-  const query_to_find_a_particular_payout = {
+// let number_match = async (draw_id,selected_numbers_by_user) => {
+//   const query_to_find_numbers_by_draw_id = {where : {draw_id : draw_id}};
+//   const twenty_numbers = await FindLastDraw(query_to_find_numbers_by_draw_id);
+//   const matched_numbers = findCommonElements(selected_numbers_by_user,twenty_numbers);
+//   const numbers_selected = selected_numbers_by_user.length;
+//   const query_to_find_a_particular_payout = {
 
-  };
-  const payout_for_a_particular_select = PayOutTableServices(query);
-  return {
-         matched_numbers : matched_numbers,
-         win_amount : win_amount
-        } ;
-}
-let findCommonElements = (arr1, arr2) => {
-  
-  const commonElements = [];
-  
-  for (const element of arr1) {
-      if (arr2.includes(element)) {
-          commonElements.push(element);
-      }
-  }
+//   };
+//   const payout_for_a_particular_select = PayOutTableServices(query);
+//   return {
+//          matched_numbers : matched_numbers,
+//          win_amount : win_amount
+//         } ;
+// }
 
-  return commonElements;
-}
 
+// eventEmitter.on("number_match", async (data) => {
+//   console.log("req number_match",data)
+//   try {
+//     if (typeof data == 'string') {
+//       data = JSON.parse(data);
+//     }
+//     let userResult = await number_controller.number_match(data);
+//     console.log("setPlayerOrderDeatails",userResult)
+//     io.sockets.in(socket.id).emit("number_match", userResult);
+//   } catch (error) {
+//     console.log("In practice details event===>>>", error);
+//   }
+// });
 
 module.exports = {
     mainGameLoop : gameLoop,
     startDraw : startDraw,
-    number_match :number_match,
+    //number_match :number_match,
     
 }

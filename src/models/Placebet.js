@@ -58,23 +58,19 @@ const Placebet = dataAPI.define(
       // Integer Datatype
       type: Sequelize.STRING,
       // To uniquely identify user
-      primaryKey: true,
-      defaultValue: "111",
+      primaryKey: true
     },
     client_id: {
       // Integer Datatype
-      type: Sequelize.STRING,
-      defaultValue: "1",
+      type: Sequelize.STRING
     },
     draw_id: {
       // Integer Datatype
-      type: Sequelize.STRING,
-      defaultValue: "1",
+      type: Sequelize.STRING
     },
     user_name : {
       // Integer Datatype
-      type: Sequelize.STRING,
-      defaultValue: "red_apple",
+      type: Sequelize.STRING
     },
     contact: {
       type: Sequelize.STRING,
