@@ -1,4 +1,5 @@
 let setNSP = (gameIo) => {
+  let setNSP = (gameIo) => {
     let state = null;
     let turnCountdown = {};
     let { eventEmitter} = require('../../config/appConfig');

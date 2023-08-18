@@ -9,9 +9,15 @@ const bcrypt = require("bcrypt");
 const responseMessage = require("../libs/responseMessage");
 const { Op, Transaction } = require("sequelize");
 const appConfig = require("../../config/appConfig");
+const FindBet = require("../services/place_bet");
+const {FindBetFromDrawId,FindAllBet} = FindBet;
 const DrawTableServices = require("../services/bet_draw");
 const {DrawTableFindAll,FindLastDraw,SaveToDraw} = DrawTableServices ;
+const PayOutTableService = require("../services/payoutTable");
+const {PayOutTableServices} = PayOutTableService ;
 const pRNG = appConfig.pRNG;
+const DrawTable = require("../models/Draw");
+const { dataAPI } = require('../../www/db/db');
 
 //generate draw id
 
@@ -189,18 +195,34 @@ let save_multiple_bet = async (req,res,next) => {
     //let guest_id = uuidv4();
     //let bet_id = uuidv4();
     console.log(req.body);
-    const length = req.body.length;
-    console.log("length",length);
-    for (i of req.body){
-      i.draw_id = uuidv4();
+    const length = req.body.multiple_place_bet.length;
+    const query_for_last_draw = {
+      order: [ [ 'draw_id', 'DESC']],
+      limit: 1,
+      raw : true
+  };
+    const last_draw = await FindLastDraw(query_for_last_draw);
+    let {draw_id} = last_draw ;
+    //draw_id = draw_id+1;
+    console.log("last_draw",draw_id);
+    //console.log("length",length);
+    for (i of req.body.multiple_place_bet){
+      i.draw_id = draw_id+1;
       i.bet_id = uuidv4();
+      i.bet_amount = i.amount;
 
     }
-    console.log(req.body);
-    const bet_created = await Placebet.bulkCreate(req.body);
-    console.log(bet_created);
-    return res.status(401).send({
-      message: bet_created,
+    //req.body.multiple_place_bet.bet_amount = req.body.multiple_place_bet.amount;
+    delete req.body.multiple_place_bet.pays;
+    delete req.body.multiple_place_bet.toWin;
+    delete req.body.multiple_place_bet.time;
+    delete req.body.multiple_place_bet.toamount;
+    delete req.body.multiple_place_bet.amount;
+    console.log("req.body",req.body.multiple_place_bet);
+    const bet_created = await Placebet.bulkCreate(req.body.multiple_place_bet);
+    console.log("bet_created",bet_created);
+    return res.status(200).send({
+      message: responseMessage.BET_PLACED_SUCCESSFULLY,
       error: false,
     });
   } catch (error) {
@@ -341,10 +363,17 @@ let get_bet_history = async (req, res, next) => {
   };
   const validated_body = schema.validate(id);
   if (validated_body.value.role === "7") {
-    const bet_history = await Placebet.findAndCountAll({
-      where: { client_id: validated_body.value.id },
-    });
-    if(bet_history.count!==0){
+
+    let sql = "select dt.draw_id,case when dt.draw_id is null then '-' else 999 end as winamount ,pb.*,dt.* from Placebet pb left join DrawTable dt ON pb.draw_id=dt.draw_id where pb.client_id='1'";
+        
+        let bet_history = await dataAPI.query(sql, { type: dataAPI.QueryTypes.SELECT });
+        let result = bet_history[0];
+        console.log("result",bet_history);
+    // const bet_history = await Placebet.findAndCountAll({
+    //   where: { client_id: validated_body.value.id },
+    // });
+    console.log("bet_history",bet_history);
+    if(bet_history.length!==0){
       return res.status(200).send({
         bet_history: bet_history,
         message: responseMessage.BET_HISTORY_FOUND,
