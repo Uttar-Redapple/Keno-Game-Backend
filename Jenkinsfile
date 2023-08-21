@@ -35,7 +35,7 @@ pipeline {
                         sh 'pm2 delete keno-api'  // Delete the process if found
                     }
 
-                    sh 'pm2 start "npm start" --name keno-api'  // Start the process
+                    sh 'pm2 start "npm start" --name keno-api --namespace keno-api'  // Start the process
                 }
             }
         }
