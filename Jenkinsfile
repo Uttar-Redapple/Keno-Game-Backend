@@ -28,7 +28,8 @@ pipeline {
         
         stage('Start Application') {
             steps {
-                sh 'pm2 restart keno-api'
+                sh 'pm2 delete keno-api'
+                sh 'pm2 start "npm start" --name keno-api'
             }
         }
     }
