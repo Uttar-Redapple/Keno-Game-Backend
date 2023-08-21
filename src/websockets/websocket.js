@@ -4,7 +4,6 @@ let setNSP = (gameIo) => {
   let { eventEmitter } = require("../../config/appConfig");
   let auth = require("../middlewares/auth");
   console.log(`socket server listening on NameSpace : ${gameIo.name}`);
-  const number_controller = require("../../src/controllers/number_match");
   const { mainGameLoop, startDraw } = require("../casino/keno/keno");
   mainGameLoop();
   function fancyTimeFormat(duration) {
@@ -38,20 +37,6 @@ let setNSP = (gameIo) => {
       gameIo.emit("current-state", {
         state: state,
       });
-    });
-
-    socket.on("number_match", async (data) => {
-      console.log("req number_match", data);
-      try {
-        if (typeof data == "string") {
-          data = JSON.parse(data);
-        }
-        let userResult = await number_controller.number_match(data);
-
-        gameIo.emit("number_match", userResult);
-      } catch (error) {
-        console.log("In practice details event===>>>", error);
-      }
     });
     /**
      * Disconnection Handler.
@@ -110,13 +95,12 @@ let setNSP = (gameIo) => {
     state = 3;
     setTimeout(() => {
       gameIo.emit("stop-draw", draw);
-    }, 2500);
+    }, 3000);
 
     setTimeout(() => {
       mainGameLoop();
     }, 30 * 1000);
   });
-  
 };
 
 module.exports = {
