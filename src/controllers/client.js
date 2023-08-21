@@ -643,7 +643,7 @@ let create_player = async (req, res, next) => {
 
 let edit_created_client = async (req, res, next) => {
   const loggedInClient = await Client.findOne({
-    where: { client_id: req.client_id },
+    where: { client_id: req.user.id },
   });
 
   //console.log("I am loggedInClient from edit", validatedBody);
@@ -726,7 +726,7 @@ let edit_created_client = async (req, res, next) => {
           contact: validatedBody.value.contact,
           user_name: validatedBody.value.user_name,
         },
-        { where: { client_id: req.body.client_id, creater_id: req.client_id } }
+        { where: { client_id: req.body.client_id, creater_id: req.user.id } }
       );
       if (updatee) {
         res.status(200).send({
@@ -759,7 +759,7 @@ let delete_client = async (req, res, next) => {
   };
   const validatedBody = schema.validate(client);
   const loggedInClient = await Client.findOne({
-    where: { client_id: req.client_id },
+    where: { client_id: req.user.id },
   });
   console.log(" I am req.body.client_id", req.body.client_id);
   console.log(" I am loggedin client", loggedInClient);
@@ -795,7 +795,7 @@ let delete_client = async (req, res, next) => {
     }
   } else {
     const clientCheck = await Client.findOne({
-      where: { client_id: req.body.client_id, creater_id: req.client_id },
+      where: { client_id: req.body.client_id, creater_id: req.user.id },
     });
     if (
       loggedInClient.dataValues.client_role == "1" ||
@@ -804,7 +804,7 @@ let delete_client = async (req, res, next) => {
       if (clientCheck) {
         {
           const delete_client = await Client.destroy({
-            where: { client_id: req.body.client_id, creater_id: req.client_id },
+            where: { client_id: req.body.client_id, creater_id: req.user.id },
           });
 
           if (delete_client) {
@@ -836,7 +836,7 @@ let delete_client = async (req, res, next) => {
 
 //Client list
 let find_all_clients = async (req, res, next) => {
-  console.log("req.client_id",req.user.id);
+  console.log("req.user.id",req.user.id);
   const superUser = await Client.findOne({
     where: { client_id: req.user.id },
   });
