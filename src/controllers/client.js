@@ -428,7 +428,7 @@ let create = async (req, res, next) => {
     console.log("i am validated body", validatedBody);
 
     const loggedInClient = await Client.findOne({
-      where: { client_id: req.client_id },
+      where: { client_id: req.user.id },
     });
     console.log("logged in client", loggedInClient.dataValues.create);
     console.log("i am req.body", req.body.e_mail);
@@ -463,7 +463,7 @@ let create = async (req, res, next) => {
       const passwordHash = await bcrypt.hash(req.body.password, 10);
       validatedBody.value.password = passwordHash;
       validatedBody.value.client_id = clientId;
-      validatedBody.value.creater_id = req.client_id;
+      validatedBody.value.creater_id = req.user.id;
       validatedBody.value.created_by = dataValues.client_role;
       console.log(
         "I am the data type of created_by",
@@ -550,7 +550,7 @@ let create_player = async (req, res, next) => {
     console.log("i am validated body", validatedBody);
 
     const loggedInClient = await Client.findOne({
-      where: { client_id: req.client_id },
+      where: { client_id: req.user.id },
     });
     console.log("logged in client", loggedInClient.dataValues.create);
     console.log("i am req.body", req.body.e_mail);
@@ -836,10 +836,11 @@ let delete_client = async (req, res, next) => {
 
 //Client list
 let find_all_clients = async (req, res, next) => {
+  console.log("req.client_id",req.user.id);
   const superUser = await Client.findOne({
-    where: { client_id: req.client_id },
+    where: { client_id: req.user.id },
   });
-  //console.log("superUser", superUser);
+  console.log("superUser", superUser);
   const findAll = await Client.findAll();
   //console.log("i am client_id form find all", findAll);
   //console.log("superUser.dataValues.client_id", superUser.dataValues.client_id);
@@ -853,7 +854,7 @@ let find_all_clients = async (req, res, next) => {
       },
     });
     const players = await Client.findAndCountAll({
-      creater_id: req.client_id,
+      creater_id: req.user.id,
       where: { client_role: "7" },
     });
     return res.status(200).json({
@@ -863,13 +864,13 @@ let find_all_clients = async (req, res, next) => {
     });
   } else {
     const client = await Client.findAll({
-      where: { creater_id: req.client_id },
+      where: { creater_id: req.user.id },
     });
     console.log("I am client", client);
     if (client.length) {
       const allClient = await Client.findAndCountAll({
         where: {
-          creater_id: req.client_id,
+          creater_id: req.user.id,
           [Op.and]: [
             { client_role: { [Op.ne]: "7" } },
             { creater_id: { [Op.ne]: "1" } },
@@ -877,8 +878,8 @@ let find_all_clients = async (req, res, next) => {
         },
       });
       const players = await Client.findAndCountAll({
-        creater_id: req.client_id,
-        where: { creater_id: req.client_id, client_role: "7" },
+        creater_id: req.user.id,
+        where: { creater_id: req.user.id, client_role: "7" },
       });
 
       console.log("players", players);
@@ -907,6 +908,7 @@ let find_all_clients = async (req, res, next) => {
 
 //find player
 let find_player = async (req, res, next) => {
+  console.log("req.user.id",req.user.id);
   try {
     const schema = Joi.object({
       user_name: Joi.string().required(),
@@ -916,9 +918,9 @@ let find_player = async (req, res, next) => {
     };
 
     const validatedBody = schema.validate(client);
-    console.log("i am validated body", req.client_id);
+    //console.log("i am validated body", req.user.id);
 
-    if (req.client_id == "abc") {
+    if (req.user.id == "abc") {
       const player_and_guest_of_admin = await Client.findOne({
         user_name: validatedBody.value.user_name,
       });
@@ -941,7 +943,7 @@ let find_player = async (req, res, next) => {
       const player_of_individual_role = await Client.findOne({
         where: {
           user_name: validatedBody.value.user_name,
-          creater_id: req.client_id,
+          creater_id: req.user.id,
         },
       });
       if (player_of_individual_role) {

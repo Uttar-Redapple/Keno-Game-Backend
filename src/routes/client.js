@@ -14,11 +14,11 @@ module.exports.setRouter = (app) => {
   app.post(`${baseUrl}/verify_otp`, clientController.verify_otp);
   //app.use(auth.verifyToken);
   
-  app.get(`${baseUrl}/find_all_clients`, clientController.find_all_clients);
-  app.post(`${baseUrl}/create`, clientController.create);
+  app.get(`${baseUrl}/find_all_clients`,auth.isAuthorized, clientController.find_all_clients);
+  app.post(`${baseUrl}/create`, auth.isAuthorized,clientController.create);
   app.post(`${baseUrl}/edit_created_client`,clientController.edit_created_client);
   app.post(`${baseUrl}/delete_client`, clientController.delete_client);
   app.post(`${baseUrl}/create_player`, clientController.create_player);
-  app.post(`${baseUrl}/find_player`, clientController.find_player);
+  app.post(`${baseUrl}/find_player`, auth.isAuthorized,clientController.find_player);
   
 };

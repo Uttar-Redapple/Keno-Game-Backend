@@ -116,14 +116,7 @@ let setNSP = (gameIo) => {
       mainGameLoop();
     }, 30 * 1000);
   });
-  eventEmitter.on("array-match", (draw) => {
-    // Example arrays
-    //const array1 = [1, 2, 3, 4, 5];
-    //const array2 = [3, 4, 5, 6, 7];
-
-    const commonElements = findCommonElements(array1, array2);
-    console.log(commonElements);
-  });
+  
 };
 
 module.exports = {
