@@ -1,9 +1,8 @@
 pipeline {
     agent any
-
-    environment {
-        NVM_VERSION = '16.20.2'  // Specify the desired Node.js version
-    }
+    env.NODEJS_HOME = "${tool 'NodeJsv12.16.2'}"
+    env.PATH="${env.NODEJS_HOME}/bin:${env.PATH}"
+    sh 'npm --version'
     
     stages {
         stage('Checkout') {
