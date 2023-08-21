@@ -32,10 +32,10 @@ pipeline {
                     def pm2ListOutput = sh(returnStdout: true, script: 'pm2 list').trim()
 
                     if (pm2ListOutput.contains('keno-api')) {
-                        sh 'pm2 delete keno-api'  // Delete the process if found
+                        sh 'sudo pm2 delete keno-api'  // Delete the process if found
                     }
 
-                    sh 'pm2 start "npm start" --name keno-api --namespace keno-api'  // Start the process
+                    sh 'sudo pm2 start "npm start" --name keno-api --namespace keno-api'  // Start the process
                 }
             }
         }
