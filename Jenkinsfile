@@ -49,7 +49,7 @@ pipeline {
                     //     //sh 'sudo /home/ubuntu/.nvm/versions/node/v18.12.1/bin/pm2 delete keno-api'  // Delete the process if found
                     // }
 
-                    sh 'nvm use 16.20.2 && pm2 start "npm start" --name keno-api --namespace keno-api'
+                    sh 'pm2 start "npm start" --name keno-api --namespace keno-api'
 
                     //sh 'sudo /home/ubuntu/.nvm/versions/node/v18.12.1/bin/pm2 start "npm start" --name keno-api --namespace keno-api'  // Start the process
                 }
