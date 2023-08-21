@@ -1,10 +1,26 @@
 pipeline {
     agent any
+
+    environment {
+        NVM_VERSION = '16.8.0'  // Specify the desired Node.js version
+    }
     
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Setup Node.js') {
+            steps {
+                sh '''
+                export NVM_DIR="$HOME/.nvm"
+                [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+                nvm install $NVM_VERSION
+                nvm use $NVM_VERSION
+                '''
             }
         }
         
