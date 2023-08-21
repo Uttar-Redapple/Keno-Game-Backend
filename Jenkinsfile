@@ -15,10 +15,6 @@ pipeline {
         stage('Setup Node.js') {
             steps {
                 script {
-                    sh 'export NVM_DIR="$HOME/.nvm"'
-                    sh '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"'
-                    sh '[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"'
-                    sh "nvm install $NVM_VERSION"
                     sh "nvm use $NVM_VERSION"
                 }
             }
