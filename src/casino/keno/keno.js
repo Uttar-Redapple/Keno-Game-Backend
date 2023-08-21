@@ -1,7 +1,7 @@
 const DrawTableServices = require("../../services/bet_draw");
 const NumberTableServices = require("../../services/number_count");
 const PayoutTableService = require("../../services/payoutTable");
-const number_controller = require("../../controllers/number_match")
+//const number_controller = require("../../controllers/number_match")
 const {PayOutTableServices} = PayoutTableService;
 const {DrawTableFindAll,FindLastDraw,SaveToDraw} = DrawTableServices ;
 const {FindAllFromNumberTable,UpdateNumberTable} = NumberTableServices;
