@@ -12,13 +12,13 @@ pipeline {
             }
         }
 
-        stage('Setup Node.js') {
-            steps {
-                script {
-                    sh "nvm use $NVM_VERSION"
-                }
-            }
-        }
+        // stage('Setup Node.js') {
+        //     steps {
+        //         script {
+        //             sh "nvm use $NVM_VERSION"
+        //         }
+        //     }
+        // }
         
         stage('Install Dependencies') {
             steps {
@@ -41,7 +41,7 @@ pipeline {
         stage('Start Application') {
             steps {
                 script {
-                    sh 'sudo su ubuntu'
+                    // sh 'sudo su ubuntu'
                     def pm2ListOutput = sh(returnStdout: true, script: 'pm2 list').trim()
 
                     // if (pm2ListOutput.contains('keno-api')) {
@@ -49,7 +49,7 @@ pipeline {
                     //     //sh 'sudo /home/ubuntu/.nvm/versions/node/v18.12.1/bin/pm2 delete keno-api'  // Delete the process if found
                     // }
 
-                    sh 'pm2 start "npm start" --name keno-api --namespace keno-api'
+                    sh 'nvm use 16.20.2 && pm2 start "npm start" --name keno-api --namespace keno-api'
 
                     //sh 'sudo /home/ubuntu/.nvm/versions/node/v18.12.1/bin/pm2 start "npm start" --name keno-api --namespace keno-api'  // Start the process
                 }
