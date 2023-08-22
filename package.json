@@ -7,6 +7,9 @@
         "start": "node app.js",
         "dev": "node app.js"
     },
+    "engines": {
+        "node": ">=16.19.0"
+    },
     "author": "uttar roy",
     "license": "ISC",
     "dependencies": {
