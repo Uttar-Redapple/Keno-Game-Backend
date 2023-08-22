@@ -2,9 +2,10 @@
 # Specify the name of your PM2 project
 PROJECT_NAME="keno-api"
 PROJECT_PATH="/var/www/html/Keno-Game-Backend"
-NODE_VER = "v16.19.0"
+NODE_VER="v16.19.0"
 # Check if nvm is installed
 if ! command -v nvm &> /dev/null; then
+    sudo su ubuntu
     echo "nvm not found. Installing nvm..."
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
     # Load nvm
@@ -25,7 +26,6 @@ if ! command -v nvm &> /dev/null; then
 
     # Start Project
     # Check if the project is running in PM2
-    echo 'pm2 list | grep -q "$PROJECT_NAME"';
     if pm2 list | grep -q "$PROJECT_NAME"; then
         echo "Project is already running in PM2. Restarting..."
         pm2 restart "$PROJECT_NAME"
