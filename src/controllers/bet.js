@@ -341,6 +341,7 @@ let add_balance = async (req, res, next) => {
 let get_bet_history = async (req, res, next) => {
   try {
     console.log("req.user", req.user);
+    console.log("req.body of bet_history", req.body.id);
     req.body.id;
     const schema = Joi.object({
       id: Joi.string().required(),
@@ -410,7 +411,7 @@ let get_bet_history = async (req, res, next) => {
           const numbers_matched = commonElements.length ;
           //console.log("numbers_matched",numbers_matched);
           var rtp ;
-          for(i of payout_table){
+          for(let i of payout_table){
               //console.log("commonElements.length",commonElements.length);
               if(commonElements.length==i.numbers_match){
                   rtp = i.payout ;

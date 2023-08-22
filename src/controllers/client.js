@@ -71,6 +71,8 @@ let login = async (req, res, next) => {
     console.log("i am client", client);
     //console.log("i am client", client.dataValues.update);
     if (client) {
+      
+      
       if (client.client_role !== "7") {
         if (client.dataValues.status == "active") {
           passwordMatch = await bcrypt.compare(
@@ -83,7 +85,7 @@ let login = async (req, res, next) => {
           if (passwordMatch) {
             token = jwt.sign(
               { id: client.client_id, email: client.e_mail },
-              process.env.ENC_KEY,{expiresIn : 86400}
+              process.env.ENC_KEY,{expiresIn : process.env.JWT_TOKEN_EXPIRE_TIME}
             );
             res.status(200).json({
               message: resMessage.LOGIN_SUCCESS,
@@ -126,6 +128,7 @@ let login = async (req, res, next) => {
 
 let players_login = async (req, res, next) => {
   try {
+    console.log("process.env.JWT_TOKEN_EXPIRE_TIME",process.env.JWT_TOKEN_EXPIRE_TIME);
     const schema = Joi.object({
       password: Joi.string(),
       e_mail: Joi.string().email().required(),
@@ -143,7 +146,7 @@ let players_login = async (req, res, next) => {
 
     const validatedBody = schema.validate(player);
     console.log("i am validated body", validatedBody);
-    console.log("secretOrPrivateKey is ", process.env.ENC_KEY,{expiresIn : 86400});
+    console.log("secretOrPrivateKey is ", process.env.ENC_KEY);
     console.log("validatedBody.value.e_mail", validatedBody.value.e_mail);
     console.log("i am client", validatedBody.value.e_mail);
     const client = await Client.findOne({
@@ -168,9 +171,10 @@ let players_login = async (req, res, next) => {
 
             console.log("password match", passwordMatch);
             if (passwordMatch) {
+              
               token = jwt.sign(
                 { id: client.client_id, email: client.e_mail },
-                process.env.ENC_KEY,{expiresIn : 86400}
+                process.env.ENC_KEY,{expiresIn : process.env.JWT_TOKEN_EXPIRE_TIME}
               );
               return res.status(200).json({
                 id : client.client_id,
@@ -220,7 +224,7 @@ let verify_phno = async (req, res, next) => {
 
   const validatedBody = schema.validate(player);
   console.log("i am validated body", validatedBody);
-  console.log("secretOrPrivateKey is ", process.env.ENC_KEY,{expiresIn : 86400});
+  console.log("secretOrPrivateKey is ", process.env.ENC_KEY);
   const ph_no_check = await Client.findOne({
     where: { contact: validatedBody.value.contact },
   });
@@ -258,7 +262,8 @@ let verify_phno = async (req, res, next) => {
             message: resMessage.NO_OTP,
             error: false,
             otp: otp,
-            contact: validatedBody.value.contact
+            contact: validatedBody.value.contact,
+            
           });
         }
       } else {
@@ -310,7 +315,7 @@ let verify_otp = async (req, res, next) => {
         id: ph_no_check.dataValues.client_id,
         e_mail: ph_no_check.dataValues.e_mail,
       },
-      process.env.ENC_KEY,{expiresIn : 86400}
+      process.env.ENC_KEY,{expiresIn : process.env.JWT_TOKEN_EXPIRE_TIME}
     );
     console.log("token", token);
     return res.status(200).json({
@@ -318,6 +323,7 @@ let verify_otp = async (req, res, next) => {
       token: token,
       user_name : ph_no_check.user_name,
       client_id : ph_no_check.client_id,
+      balance : ph_no_check.dataValues.balance,
       error: false,
     });
   } else {
@@ -332,7 +338,7 @@ let verify_otp = async (req, res, next) => {
 
 let other_role_login = async (req, res, next) => {
   try {
-    console.log("secretOrPrivateKey is ", process.env.ENC_KEY,{expiresIn : 86400});
+    console.log("secretOrPrivateKey is ", process.env.ENC_KEY,{expiresIn : process.env.JWT_TOKEN_EXPIRE_TIME});
     console.log("i am client", req.body.e_mail);
     const client = await Client.findOne({ where: { e_mail: req.body.e_mail } });
     if (!client) {
@@ -353,7 +359,7 @@ let other_role_login = async (req, res, next) => {
             if (passwordMatch) {
               token = jwt.sign(
                 { id: client.client_id, email: client.e_mail },
-                process.env.ENC_KEY,{expiresIn : 86400}
+                process.env.ENC_KEY,{expiresIn : process.env.JWT_TOKEN_EXPIRE_TIME}
               );
               res.status(200).json({
                 message: resMessage.LOGIN_SUCCESS,

@@ -44,7 +44,7 @@ let current_draw = async () => {
         const dup_removed = hasDuplicates(rand_num);
         const array = Array.from(dup_removed);
         const twenty_random_number_without_repetition = array.splice(array.length-20);
-        console.log(dup_removed, dup_removed.length);
+        console.log("dup_removed",dup_removed, dup_removed.length);
         console.log("rand", rand_num, rand_num.length);
         console.log("array", array);
         console.log("twenty_random_number_without_repetition", twenty_random_number_without_repetition);
@@ -56,7 +56,7 @@ let current_draw = async () => {
         const last_draw = await FindLastDraw(query_for_last_draw);
         let {draw_id} = last_draw ;
         draw_id = draw_id+1;
-        console.log("last_draw",draw_id);
+        console.log("llast_draw",draw_id);
         eventEmitter.emit("update-db",{
             draw_id : draw_id,
             draw_array : twenty_random_number_without_repetition
