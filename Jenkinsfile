@@ -7,7 +7,7 @@ pipeline {
             }
         }
 
-        stage('Setup Node.js') {
+        stage('Setup Project') {
             steps {
                 script {
                     sh "chmod +x setup.sh"
@@ -16,11 +16,11 @@ pipeline {
             }
         }
         
-        stage('Install Dependencies') {
-            steps {
-                sh 'npm install'
-            }
-        }
+        // stage('Install Dependencies') {
+        //     steps {
+        //         sh 'npm install'
+        //     }
+        // }
         
         // stage('Build') {
         //     steps {
@@ -28,19 +28,19 @@ pipeline {
         //     }
         // }
         
-        stage('Deploy') {
-            steps {
-                sh 'cp -R * /var/www/html/Keno-Game-Backend'
-            }
-        }
+        // stage('Deploy') {
+        //     steps {
+        //         sh 'cp -R * /var/www/html/Keno-Game-Backend'
+        //     }
+        // }
         
-        stage('Start Application') {
-            steps {
-                script {
-                    sh "pm2 restart all"
-                }
-            }
-        }
+        // stage('Start Application') {
+        //     steps {
+        //         script {
+        //             sh "pm2 restart all"
+        //         }
+        //     }
+        // }
     }
     // post {
     //     always {
