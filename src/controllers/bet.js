@@ -15,6 +15,8 @@ const DrawTableServices = require("../services/bet_draw");
 const { DrawTableFindAll, FindLastDraw, SaveToDraw } = DrawTableServices;
 const PayOutTableService = require("../services/payoutTable");
 const { PayOutTableServices } = PayOutTableService;
+const ClientServices = require("../services/client");
+const {FindClient} = ClientServices ;
 const pRNG = appConfig.pRNG;
 const DrawTable = require("../models/Draw");
 const { dataAPI } = require("../../www/db/db");
@@ -190,6 +192,12 @@ let save_multiple_bet = async (req, res, next) => {
     //let bet_id = uuidv4();
     console.log(req.body);
     const length = req.body.multiple_place_bet.length;
+    const query_for_find_client = {
+      where : {client_id : req.user.id},
+      raw: true,
+    };
+    const find_client = await FindClient(query_for_find_client);
+    console.log("find_client",find_client);
     const query_for_last_draw = {
       order: [["draw_id", "DESC"]],
       limit: 1,
@@ -200,18 +208,21 @@ let save_multiple_bet = async (req, res, next) => {
     //draw_id = draw_id+1;
     console.log("last_draw", draw_id);
     //console.log("length",length);
-    for (i of req.body.multiple_place_bet) {
+    for (let i of req.body.multiple_place_bet) {
       i.draw_id = draw_id + 1;
       i.bet_id = uuidv4();
       i.bet_amount = i.amount;
+      i.client_id = req.user.id;
+      i.total_amount = find_client.amount ;
     }
     //req.body.multiple_place_bet.bet_amount = req.body.multiple_place_bet.amount;
     delete req.body.multiple_place_bet.pays;
     delete req.body.multiple_place_bet.toWin;
     delete req.body.multiple_place_bet.time;
     delete req.body.multiple_place_bet.toamount;
-    delete req.body.multiple_place_bet.amount;
+    //delete req.body.multiple_place_bet.amount;
     console.log("req.body", req.body.multiple_place_bet);
+    //if()
     const bet_created = await Placebet.bulkCreate(req.body.multiple_place_bet);
     console.log("bet_created", bet_created);
     return res.status(200).send({
