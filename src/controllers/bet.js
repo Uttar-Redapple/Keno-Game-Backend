@@ -1,4 +1,6 @@
 const { v4: uuidv4 } = require("uuid");
+const FindCommonElements = require("../libs/util");
+const {findCommonElements} = FindCommonElements ;
 const Placebet = require("../models/Placebet");
 const Account = require("../models/Account");
 const Client = require("../models/Client");
@@ -16,7 +18,7 @@ const { DrawTableFindAll, FindLastDraw, SaveToDraw } = DrawTableServices;
 const PayOutTableService = require("../services/payoutTable");
 const { PayOutTableServices } = PayOutTableService;
 const ClientServices = require("../services/client");
-const {FindClient} = ClientServices ;
+const { FindClient,UpdateClientBalance } = ClientServices;
 const pRNG = appConfig.pRNG;
 const DrawTable = require("../models/Draw");
 const { dataAPI } = require("../../www/db/db");
@@ -190,14 +192,15 @@ let save_multiple_bet = async (req, res, next) => {
   try {
     //let guest_id = uuidv4();
     //let bet_id = uuidv4();
-    console.log(req.body);
+    console.log("req.body", req.body);
     const length = req.body.multiple_place_bet.length;
     const query_for_find_client = {
-      where : {client_id : req.user.id},
+      where: { client_id: req.user.id },
       raw: true,
     };
     const find_client = await FindClient(query_for_find_client);
-    console.log("find_client",find_client);
+    console.log("find_client", find_client);
+    //console.log("find_client.amount",find_client.amount);
     const query_for_last_draw = {
       order: [["draw_id", "DESC"]],
       limit: 1,
@@ -208,27 +211,51 @@ let save_multiple_bet = async (req, res, next) => {
     //draw_id = draw_id+1;
     console.log("last_draw", draw_id);
     //console.log("length",length);
-    for (let i of req.body.multiple_place_bet) {
-      i.draw_id = draw_id + 1;
-      i.bet_id = uuidv4();
-      i.bet_amount = i.amount;
-      i.client_id = req.user.id;
-      i.total_amount = find_client.amount ;
+    let { multiple_place_bet } = req.body;
+    //console.log("multiple_place_bettt",multiple_place_bet);
+    
+    let total_bet_amount_of_multiple = 0;
+    for (let i of multiple_place_bet) {
+      total_bet_amount_of_multiple = total_bet_amount_of_multiple + 1;
     }
+    console.log("total_bet_amount_of_multiple", total_bet_amount_of_multiple);
     //req.body.multiple_place_bet.bet_amount = req.body.multiple_place_bet.amount;
-    delete req.body.multiple_place_bet.pays;
-    delete req.body.multiple_place_bet.toWin;
-    delete req.body.multiple_place_bet.time;
-    delete req.body.multiple_place_bet.toamount;
-    //delete req.body.multiple_place_bet.amount;
+
     console.log("req.body", req.body.multiple_place_bet);
-    //if()
-    const bet_created = await Placebet.bulkCreate(req.body.multiple_place_bet);
-    console.log("bet_created", bet_created);
-    return res.status(200).send({
-      message: responseMessage.BET_PLACED_SUCCESSFULLY,
-      error: false,
-    });
+    if (total_bet_amount_of_multiple > find_client[0].amount) {
+      return res.status(400).send({
+        message: responseMessage.BET_AMOUNT_CONFLICT,
+        error: true,
+      });
+    }
+    else{
+      for (let i = 0; i < req.body.multiple_place_bet.length; i++) {
+        req.body.multiple_place_bet[i].draw_id = draw_id + 1;
+        req.body.multiple_place_bet[i].bet_id = uuidv4();
+        req.body.multiple_place_bet[i].bet_amount = req.body.multiple_place_bet[i].amount;
+        req.body.multiple_place_bet[i].client_id = req.user.id;
+        req.body.multiple_place_bet[i].total_amount = find_client[0].amount;
+      }
+      delete req.body.multiple_place_bet.pays;
+      delete req.body.multiple_place_bet.toWin;
+      delete req.body.multiple_place_bet.time;
+      delete req.body.multiple_place_bet.toamount;
+      //delete req.body.multiple_place_bet.amount;
+      const updated_balance_after_multiple_place_bet = find_client[0].amount- total_bet_amount_of_multiple ;
+      const bet_created = await Placebet.bulkCreate(req.body.multiple_place_bet);
+      console.log("bet_created", bet_created);
+      const query_to_update_client_balance_after_multiple_bet = {
+        amount : updated_balance_after_multiple_place_bet
+      };
+      const condition_for_client_balance_update = {where : {client_id : req.user.id}};
+      const client_balance_updated = await UpdateClientBalance(query_to_update_client_balance_after_multiple_bet,condition_for_client_balance_update);
+      console.log("client_balance_updated",client_balance_updated);
+      return res.status(200).send({
+        message: responseMessage.BET_PLACED_SUCCESSFULLY,
+        error: false,
+      });
+    }
+
   } catch (error) {
     return next(error);
   }
@@ -400,61 +427,51 @@ let get_bet_history = async (req, res, next) => {
           console.log("number_choosen_by_game_engine", typeof arr2);
           console.log("arr1", arr1);
           console.log("arr2", arr2);
-          function findCommonElements(arr1, arr2) {
-            const commonElements = [];
-
-            for (const element of arr1) {
-              if (arr2.includes(element)) {
-                commonElements.push(element);
-              }
-            }
-
-            return commonElements;
-          }
+          
           const commonElements = findCommonElements(arr2, arr1);
           console.log("commonElements", commonElements);
           //bet.winamount = commonElements.length;
-          const query = {attributes: ["numbers_match","payout"], raw: true};
+          const query = { attributes: ["numbers_match", "payout"], raw: true };
           const payout_table = await PayOutTableServices(query);
-          //console.log("payout_table",payout_table);
+          console.log("payout_table",payout_table);
           //const total_number_selected_by_bet_placer = numbers_selected_by_bet_placer.length;
           //console.log(numbers_selected_by_bet_placer.length);
-          const numbers_matched = commonElements.length ;
-          //console.log("numbers_matched",numbers_matched);
-          var rtp ;
-          for(let i of payout_table){
-              //console.log("commonElements.length",commonElements.length);
-              if(commonElements.length==i.numbers_match){
-                  rtp = i.payout ;
-                  
-              }
-              
-              
-          }
-          console.log("rtp",rtp);
-          
-          const obj_of_rtp = JSON.parse(rtp)
-          console.log("obj_of_rtp",obj_of_rtp);
-          let rtp_for_winning_number ;
-          for (const each in obj_of_rtp) {
-              
-              if(each == numbers_matched)
-              {
-                  rtp_for_winning_number = obj_of_rtp[each];
-                  
-              }
-      
-              
+          const numbers_matched = commonElements.length;
+          console.log("numbers_matched",numbers_matched);
+          var rtp;
+          for (let i of payout_table) {
+            console.log("i",i);
+            //console.log("commonElements.length",commonElements.length);
+            
+            if (commonElements.length == i.numbers_match) {
+              console.log("i.numbers_match",i.numbers_match);
+              rtp = i.payout;
+              console.log("i.payout",i.payout);
+              console.log("rtp",rtp);
             }
-            console.log("winned rtp",rtp_for_winning_number);
-            const placed_bet_amount = bet.bet_amount ;
-            const win_amount = placed_bet_amount*rtp_for_winning_number ;
-            console.log("win_amount",win_amount);
-            bet.winamount = win_amount;
+            else{
+              bet.winamount = 0;
+
+            }
+          }
+          console.log("rtp", rtp);
+
+          const obj_of_rtp = JSON.parse(rtp);
+          console.log("obj_of_rtp", obj_of_rtp);
+          let rtp_for_winning_number;
+          for (const each in obj_of_rtp) {
+            if (each == numbers_matched) {
+              rtp_for_winning_number = obj_of_rtp[each];
+            }
+          }
+          console.log("winned rtp", rtp_for_winning_number);
+          const placed_bet_amount = bet.bet_amount;
+          const win_amount = placed_bet_amount * rtp_for_winning_number;
+          console.log("win_amount", win_amount);
+          bet.winamount = win_amount;
         } else {
           bet.winamount = 0;
         }
-        
       }
       if (bet_history.length !== 0) {
         if (last_bet.draw_id < last_draw_id.draw_id) {
@@ -509,6 +526,7 @@ let get_bet_history = async (req, res, next) => {
     }
   } catch (e) {
     console.log("e", e);
+    next();
   }
 };
 // get transaction history

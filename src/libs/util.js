@@ -14,28 +14,22 @@ module.exports = {
     check = check[0].split("-").reverse().join("/") + " " + check[1] + time;
     return check
   },
-  getToken: async (payload) => {
-    var token = await jwt.sign(payload, config.get('jwtsecret'), { expiresIn: "86400" })
-    return token;
+  findCommonElements(arr1, arr2) {
+    const commonElements = [];
+
+    for (const element of arr1) {
+      if (arr2.includes(element)) {
+        commonElements.push(element);
+      }
+    }
+
+    return commonElements;
+  },
+  findWinAmount(){
+
   }
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  // getToken: async (payload) => {
+  //   var token = await jwt.sign(payload, config.get('jwtsecret'), { expiresIn: 86400 })
+  //   return token;
+  // }
 }
