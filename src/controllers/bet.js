@@ -443,7 +443,7 @@ let get_bet_history = async (req, res, next) => {
             console.log("i",i);
             //console.log("commonElements.length",commonElements.length);
             
-            if (commonElements.length == i.numbers_match) {
+            if (commonElements.length>0 && commonElements.length == i.numbers_match) {
               console.log("i.numbers_match",i.numbers_match);
               rtp = i.payout;
               console.log("i.payout",i.payout);
