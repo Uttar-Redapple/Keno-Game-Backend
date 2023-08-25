@@ -71,8 +71,6 @@ let login = async (req, res, next) => {
     console.log("i am client", client);
     //console.log("i am client", client.dataValues.update);
     if (client) {
-      
-      
       if (client.client_role !== "7") {
         if (client.dataValues.status == "active") {
           passwordMatch = await bcrypt.compare(
@@ -85,7 +83,8 @@ let login = async (req, res, next) => {
           if (passwordMatch) {
             token = jwt.sign(
               { id: client.client_id, email: client.e_mail },
-              process.env.ENC_KEY,{expiresIn : process.env.JWT_TOKEN_EXPIRE_TIME}
+              process.env.ENC_KEY,
+              { expiresIn: process.env.JWT_TOKEN_EXPIRE_TIME }
             );
             res.status(200).json({
               message: resMessage.LOGIN_SUCCESS,
@@ -128,7 +127,10 @@ let login = async (req, res, next) => {
 
 let players_login = async (req, res, next) => {
   try {
-    console.log("process.env.JWT_TOKEN_EXPIRE_TIME",process.env.JWT_TOKEN_EXPIRE_TIME);
+    console.log(
+      "process.env.JWT_TOKEN_EXPIRE_TIME",
+      process.env.JWT_TOKEN_EXPIRE_TIME
+    );
     const schema = Joi.object({
       password: Joi.string(),
       e_mail: Joi.string().email().required(),
@@ -171,17 +173,17 @@ let players_login = async (req, res, next) => {
 
             console.log("password match", passwordMatch);
             if (passwordMatch) {
-              
               token = jwt.sign(
                 { id: client.client_id, email: client.e_mail },
-                process.env.ENC_KEY,{expiresIn : process.env.JWT_TOKEN_EXPIRE_TIME}
+                process.env.ENC_KEY,
+                { expiresIn: process.env.JWT_TOKEN_EXPIRE_TIME }
               );
               return res.status(200).json({
-                id : client.client_id,
+                id: client.client_id,
                 user_name: client.dataValues.user_name,
                 message: resMessage.PWD_MATCHED,
                 error: false,
-                token : token
+                token: token,
               });
             } else {
               return res
@@ -242,15 +244,13 @@ let verify_phno = async (req, res, next) => {
             { otp: otp, otp_time: otpExpireTime },
             { where: { contact: validatedBody.value.contact } }
           );
-          return res
-            .status(200)
-            .json({
-              result: { message: resMessage.PHNO_VERIFIED },
-              message: resMessage.OTP_EXPIRED,
-              contact: validatedBody.value.contact,
-              otp,
-              error: false,
-            });
+          return res.status(200).json({
+            result: { message: resMessage.PHNO_VERIFIED },
+            message: resMessage.OTP_EXPIRED,
+            contact: validatedBody.value.contact,
+            otp,
+            error: false,
+          });
         } else {
           let otp = commonFunction.getOTP();
           let otpExpireTime = Date.now() + 100000;
@@ -263,7 +263,6 @@ let verify_phno = async (req, res, next) => {
             error: false,
             otp: otp,
             contact: validatedBody.value.contact,
-            
           });
         }
       } else {
@@ -278,7 +277,7 @@ let verify_phno = async (req, res, next) => {
           message: resMessage.OTP_SEND,
           error: false,
           otp: otp,
-          contact: validatedBody.value.contact
+          contact: validatedBody.value.contact,
         });
       }
     }
@@ -315,15 +314,16 @@ let verify_otp = async (req, res, next) => {
         id: ph_no_check.dataValues.client_id,
         e_mail: ph_no_check.dataValues.e_mail,
       },
-      process.env.ENC_KEY,{expiresIn : process.env.JWT_TOKEN_EXPIRE_TIME}
+      process.env.ENC_KEY,
+      { expiresIn: process.env.JWT_TOKEN_EXPIRE_TIME }
     );
     console.log("token", token);
     return res.status(200).json({
       message: responseMessage.LOGIN,
       token: token,
-      user_name : ph_no_check.user_name,
-      client_id : ph_no_check.client_id,
-      balance : ph_no_check.dataValues.balance,
+      user_name: ph_no_check.user_name,
+      client_id: ph_no_check.client_id,
+      balance: ph_no_check.dataValues.balance,
       error: false,
     });
   } else {
@@ -338,8 +338,10 @@ let verify_otp = async (req, res, next) => {
 
 let other_role_login = async (req, res, next) => {
   try {
-    console.log("secretOrPrivateKey is ", process.env.ENC_KEY,{expiresIn : process.env.JWT_TOKEN_EXPIRE_TIME});
-    console.log("i am client", req.body.e_mail);
+    console.log("secretOrPrivateKey is ", process.env.ENC_KEY, {
+      expiresIn: process.env.JWT_TOKEN_EXPIRE_TIME,
+    });
+    console.log("i am client", req.body);
     const client = await Client.findOne({ where: { e_mail: req.body.e_mail } });
     if (!client) {
       return res
@@ -357,16 +359,25 @@ let other_role_login = async (req, res, next) => {
             );
             console.log("password match", passwordMatch);
             if (passwordMatch) {
-              token = jwt.sign(
-                { id: client.client_id, email: client.e_mail },
-                process.env.ENC_KEY,{expiresIn : process.env.JWT_TOKEN_EXPIRE_TIME}
-              );
-              res.status(200).json({
-                message: resMessage.LOGIN_SUCCESS,
-                token: token,
-                error: false,
-              });
-            } else {
+              if (req.body.operator == client.dataValues.client_role) {
+                token = jwt.sign(
+                  { id: client.client_id, email: client.e_mail },
+                  process.env.ENC_KEY,
+                  { expiresIn: process.env.JWT_TOKEN_EXPIRE_TIME }
+                );
+                res.status(200).json({
+                  message: resMessage.LOGIN_SUCCESS,
+                  token: token,
+                  error: false,
+                });
+              } else {
+                res.status(401).json({
+                  message: resMessage.ROLE_MISMATCH,
+                  error: true,
+                });
+              }
+            } 
+            else {
               res
                 .status(400)
                 .json({ message: resMessage.PASSWORD_INCORRECT, error: true });
@@ -842,7 +853,7 @@ let delete_client = async (req, res, next) => {
 
 //Client list
 let find_all_clients = async (req, res, next) => {
-  console.log("req.user.id",req.user.id);
+  console.log("req.user.id", req.user.id);
   const superUser = await Client.findOne({
     where: { client_id: req.user.id },
   });
@@ -914,7 +925,7 @@ let find_all_clients = async (req, res, next) => {
 
 //find player
 let find_player = async (req, res, next) => {
-  console.log("req.user.id",req.user.id);
+  console.log("req.user.id", req.user.id);
   try {
     const schema = Joi.object({
       user_name: Joi.string().required(),

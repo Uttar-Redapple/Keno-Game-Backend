@@ -6,6 +6,7 @@ module.exports = {
   INVALID_EMAIL: "Invalid email.",
   CLIENT_CREATED: "Congratulation ! User has been Created",
   ROLE_CONFLICT: "Sorry ! you are not authorised to perform this action contact super admin",
+  ROLE_MISMATCH : "Invalid operator",
   CLIENTS_FOUND: "User list viewed successfully",
   CLIENT_IS_NOT_ACTIVE: "Sorry this user is inactive. Please contact Super Admin",
   CREATING_NOT_ALLOWED: "Creation of user is not allowed for this role",
