@@ -1,8 +1,8 @@
 const { v4: uuidv4 } = require("uuid");
 const FindCommonElements = require("../libs/util");
-const {findCommonElements} = FindCommonElements ;
+const { findCommonElements } = FindCommonElements;
 const Placebet = require("../models/Placebet");
-const Account = require("../models/Account");
+const Account = require("../models/Transaction");
 const Client = require("../models/Client");
 const Guest = require("../models/Guest");
 const Joi = require("joi");
@@ -18,10 +18,13 @@ const { DrawTableFindAll, FindLastDraw, SaveToDraw } = DrawTableServices;
 const PayOutTableService = require("../services/payoutTable");
 const { PayOutTableServices } = PayOutTableService;
 const ClientServices = require("../services/client");
-const { FindClient,UpdateClientBalance } = ClientServices;
+const { FindClient, UpdateClientBalance, FindSpecificClient } = ClientServices;
 const pRNG = appConfig.pRNG;
 const DrawTable = require("../models/Draw");
+const TransactionTable = require("../models/Transaction");
 const { dataAPI } = require("../../www/db/db");
+const TransactionServices = require("../services/add_withdraw");
+const { SaveToTransaction, FindTransaction } = TransactionServices;
 
 //generate draw id
 
@@ -213,7 +216,7 @@ let save_multiple_bet = async (req, res, next) => {
     //console.log("length",length);
     let { multiple_place_bet } = req.body;
     //console.log("multiple_place_bettt",multiple_place_bet);
-    
+
     let total_bet_amount_of_multiple = 0;
     for (let i of multiple_place_bet) {
       total_bet_amount_of_multiple = total_bet_amount_of_multiple + 1;
@@ -227,12 +230,12 @@ let save_multiple_bet = async (req, res, next) => {
         message: responseMessage.BET_AMOUNT_CONFLICT,
         error: true,
       });
-    }
-    else{
+    } else {
       for (let i = 0; i < req.body.multiple_place_bet.length; i++) {
         req.body.multiple_place_bet[i].draw_id = draw_id + 1;
         req.body.multiple_place_bet[i].bet_id = uuidv4();
-        req.body.multiple_place_bet[i].bet_amount = req.body.multiple_place_bet[i].amount;
+        req.body.multiple_place_bet[i].bet_amount =
+          req.body.multiple_place_bet[i].amount;
         req.body.multiple_place_bet[i].client_id = req.user.id;
         req.body.multiple_place_bet[i].total_amount = find_client[0].amount;
       }
@@ -241,21 +244,28 @@ let save_multiple_bet = async (req, res, next) => {
       delete req.body.multiple_place_bet.time;
       delete req.body.multiple_place_bet.toamount;
       //delete req.body.multiple_place_bet.amount;
-      const updated_balance_after_multiple_place_bet = find_client[0].amount- total_bet_amount_of_multiple ;
-      const bet_created = await Placebet.bulkCreate(req.body.multiple_place_bet);
+      const updated_balance_after_multiple_place_bet =
+        find_client[0].amount - total_bet_amount_of_multiple;
+      const bet_created = await Placebet.bulkCreate(
+        req.body.multiple_place_bet
+      );
       console.log("bet_created", bet_created);
       const query_to_update_client_balance_after_multiple_bet = {
-        amount : updated_balance_after_multiple_place_bet
+        amount: updated_balance_after_multiple_place_bet,
       };
-      const condition_for_client_balance_update = {where : {client_id : req.user.id}};
-      const client_balance_updated = await UpdateClientBalance(query_to_update_client_balance_after_multiple_bet,condition_for_client_balance_update);
-      console.log("client_balance_updated",client_balance_updated);
+      const condition_for_client_balance_update = {
+        where: { client_id: req.user.id },
+      };
+      const client_balance_updated = await UpdateClientBalance(
+        query_to_update_client_balance_after_multiple_bet,
+        condition_for_client_balance_update
+      );
+      console.log("client_balance_updated", client_balance_updated);
       return res.status(200).send({
         message: responseMessage.BET_PLACED_SUCCESSFULLY,
         error: false,
       });
     }
-
   } catch (error) {
     return next(error);
   }
@@ -350,9 +360,16 @@ let add_balance = async (req, res, next) => {
       client_id: req.body.client_id,
       amount: req.body.amount,
     };
-    const validated_body = await schema.validate(add_bal);
-
+    const validated_body = schema.validate(add_bal);
     console.log("validated_body", validated_body.value);
+    const query_for_specific_client = {
+      where: { client_id: validated_body.value.client_id },
+      raw: true,
+    };
+    const amount_before_add = await FindSpecificClient(
+      query_for_specific_client
+    );
+
     const amount = await Client.findOne({
       where: { client_id: validated_body.value.client_id },
     });
@@ -363,13 +380,106 @@ let add_balance = async (req, res, next) => {
       { amount: curr_bal },
       { where: { client_id: validated_body.value.client_id } }
     );
+    const amount_after_add = await FindSpecificClient(
+      query_for_specific_client
+    );
+    // const query_for_save_transaction = {
+    // }
+    add_bal.transaction_id = uuidv4();
+    add_bal.add = validated_body.value.amount;
+    add_bal.previous_amount = amount_before_add.amount;
+    add_bal.after_add_or_draw_amount = amount_after_add.amount;
+    //add_bal.after_add_or_draw_amount =
+    const transaction = await SaveToTransaction(add_bal);
+    console.log("transaction", transaction);
     //const amount_bet_table = await Placebet.update({ total_amount: curr_bal },{ where: { client_id: validated_body.value.user_name } })
     console.log("amount", amount.dataValues.amount);
     console.log("new_amount", curr_bal);
-    res.status(200).json({
-      responseMessage: "your balance has been updated successfully",
-      updated_amount: curr_bal,
+    //const query_for_transaction_of_particular_client_id =
+    const transaction_details = await FindTransaction(
+      query_for_specific_client
+    );
+    console.log("transaction", transaction);
+    if (transaction_details) {
+      res.status(200).json({
+        responseMessage: "your balance has been updated successfully",
+        updated_amount: curr_bal,
+        transaction_details: transaction_details,
+        error: false,
+      });
+    } else {
+      res.status(400).json({
+        responseMessage: "your balance could not updated successfully",
+        error: true,
+      });
+    }
+  } catch (error) {
+    return next(error);
+  }
+};
+//withdraw balance
+let withdraw_balance = async (req, res, next) => {
+  try {
+    const schema = Joi.object({
+      client_id: Joi.string().required(),
+      amount: Joi.number().integer().required(),
     });
+
+    const add_bal = {
+      client_id: req.body.client_id,
+      amount: req.body.amount,
+    };
+    const validated_body = schema.validate(add_bal);
+    console.log("validated_body", validated_body.value);
+    const query_for_specific_client = {
+      where: { client_id: validated_body.value.client_id },
+      raw: true,
+    };
+    const amount_before_add = await FindSpecificClient(
+      query_for_specific_client
+    );
+
+    const amount = await Client.findOne({
+      where: { client_id: validated_body.value.client_id },
+    });
+    console.log("amount", amount.dataValues.amount);
+    const prev_bal = amount.dataValues.amount;
+    let curr_bal = prev_bal - validated_body.value.amount;
+    const bal_update = await Client.update(
+      { amount: curr_bal },
+      { where: { client_id: validated_body.value.client_id } }
+    );
+    const amount_after_add = await FindSpecificClient(
+      query_for_specific_client
+    );
+    // const query_for_save_transaction = {
+    // }
+    add_bal.transaction_id = uuidv4();
+    add_bal.draw = validated_body.value.amount;
+    add_bal.previous_amount = amount_before_add.amount;
+    add_bal.after_add_or_draw_amount = amount_after_add.amount;
+
+    const transaction = await SaveToTransaction(add_bal);
+    console.log("transaction", transaction);
+    console.log("amount", amount.dataValues.amount);
+    console.log("new_amount", curr_bal);
+    const transaction_details = await FindTransaction(
+      query_for_specific_client
+    );
+    console.log("transaction", transaction);
+    if (transaction_details) {
+      res.status(200).json({
+        responseMessage: "your balance has been updated successfully",
+        updated_amount: curr_bal,
+        transaction_details: transaction_details,
+        error: false,
+      });
+    } else {
+      res.status(400).json({
+        responseMessage: "your balance could not updated successfully",
+        error: true,
+      });
+    }
   } catch (error) {
     return next(error);
   }
@@ -407,14 +517,14 @@ let get_bet_history = async (req, res, next) => {
       };
       const last_draw_id = await FindLastDraw(query_for_last_draw);
       let sql =
-        "select dt.draw_id,case when dt.draw_id is null then '-' else 999 end as winamount ,pb.*,dt.* from Placebet pb left join DrawTable dt ON pb.draw_id=dt.draw_id where pb.client_id='" +
+        "select dt.draw_id,dt.numbers_drawn,case when dt.draw_id is null then '-' else 999 end as winamount ,pb.*,dt.* from Placebet pb left join DrawTable dt ON pb.draw_id=dt.draw_id where pb.client_id='" +
         req.body.id +
         "' ORDER BY pb.createdAt DESC LIMIT 10";
       console.log("sql", sql);
       let bet_history = await dataAPI.query(sql, {
         type: dataAPI.QueryTypes.SELECT,
       });
-      //console.log("bet_history",bet_history);
+      console.log("bet_history", bet_history);
       for (bet of bet_history) {
         let number_choosen_by_bet_placer = bet.num10;
         let number_choosen_by_game_engine = bet.numbers_drawn;
@@ -427,31 +537,29 @@ let get_bet_history = async (req, res, next) => {
           console.log("number_choosen_by_game_engine", typeof arr2);
           console.log("arr1", arr1);
           console.log("arr2", arr2);
-          
+
           const commonElements = findCommonElements(arr2, arr1);
           console.log("commonElements", commonElements);
           //bet.winamount = commonElements.length;
           const query = { attributes: ["numbers_match", "payout"], raw: true };
           const payout_table = await PayOutTableServices(query);
-          console.log("payout_table",payout_table);
+          console.log("payout_table", payout_table);
           //const total_number_selected_by_bet_placer = numbers_selected_by_bet_placer.length;
           //console.log(numbers_selected_by_bet_placer.length);
           const numbers_matched = commonElements.length;
-          console.log("numbers_matched",numbers_matched);
+          console.log("numbers_matched", numbers_matched);
           var rtp;
           for (let i of payout_table) {
-            console.log("i",i);
+            console.log("i", i);
             //console.log("commonElements.length",commonElements.length);
-            
-            if (commonElements.length == i.numbers_match) {
-              console.log("i.numbers_match",i.numbers_match);
-              rtp = i.payout;
-              console.log("i.payout",i.payout);
-              console.log("rtp",rtp);
-            }
-            else{
-              bet.winamount = 0;
 
+            if (commonElements.length == i.numbers_match) {
+              console.log("i.numbers_match", i.numbers_match);
+              rtp = i.payout;
+              console.log("i.payout", i.payout);
+              console.log("rtp", rtp);
+            } else {
+              bet.winamount = 0;
             }
           }
           console.log("rtp", rtp);
@@ -474,6 +582,15 @@ let get_bet_history = async (req, res, next) => {
         }
       }
       if (bet_history.length !== 0) {
+        for (let i = 0; i < bet_history.length; i++) {
+          console.log("bet_history", bet_history[i].win_amount);
+          const win = await Placebet.update(
+            { win_amount: bet_history[i].win_amount },
+            { where: { client_id: bet_history[i].client_id } }
+          );
+          console.log("win", win);
+        }
+
         if (last_bet.draw_id < last_draw_id.draw_id) {
           return res.status(200).send({
             bet_history: bet_history,
@@ -582,6 +699,64 @@ let get_transaction_history = async (req, res, next) => {
     });
   }
 };
+//get overall transaction report
+let over_all_transaction_report = async (req, res, next) => {
+  try {
+    // if(req.user.id=="abc"){
+    //   const query_for_admin_transaction = {raw:true};
+    //   const admin_transaction_data = await FindTransaction();
+    //   console.log("admin_transaction_data",admin_transaction_data);
+    //   if (admin_transaction_data) {
+
+    //     res.status(200).json({
+    //       responseMessage: "overall transaction history found",
+    //       admin_transaction_data: admin_transaction_data,
+    //       operator_id : "abc",
+    //       operator_name : "robin",
+    //       error: false,
+    //     });
+    //   } else {
+    //     res.status(400).json({
+    //       responseMessage: "overall transaction history not found",
+    //       error: true,
+    //     });
+    //   }
+
+    // }else{
+    const query_to_find_operator = {
+      where: { client_id: req.user.id },
+      raw: true,
+    };
+    const operator = await FindSpecificClient(query_to_find_operator);
+    let sql_for_overall_transaction =
+    "select ts.client_id,ct.user_name,ct.name,ts.transaction_id,ct.client_id,ct.created_by,ts.draw,ts.add,ts.createdAt from Client ct left join Transaction ts ON ts.client_id=ct.client_id";
+    let over_all_transaction_history = await dataAPI.query(sql_for_overall_transaction, {
+       type: dataAPI.QueryTypes.SELECT,
+     });
+    // const query_for_admin_transaction = { raw: true };
+    // const over_all_transaction_history = await FindTransaction();
+    // console.log("over_all_transaction_history", over_all_transaction_history);
+
+    if (over_all_transaction_history) {
+      res.status(200).json({
+        responseMessage: "overall transaction history found",
+        over_all_transaction_history: over_all_transaction_history,
+        operator_id: req.user.id,
+        operator_name: operator.name,
+        error: false,
+      });
+    } else {
+      res.status(400).json({
+        responseMessage: "overall transaction history not found",
+        error: true,
+      });
+    }
+
+    //}
+  } catch (e) {
+    console.log("error", e);
+  }
+};
 //payout
 let payOut = async (req, res, next) => {
   try {
@@ -616,14 +791,17 @@ let payOut = async (req, res, next) => {
     console.log("error is ", e);
   }
 };
+
 module.exports = {
   draw_id: draw_id,
   place_bet: place_bet,
   get_placed_bet: get_placed_bet,
   gen_random: gen_random,
   add_balance: add_balance,
+  withdraw_balance: withdraw_balance,
   get_bet_history: get_bet_history,
   get_transaction_history: get_transaction_history,
   payOut: payOut,
   save_multiple_bet: save_multiple_bet,
+  over_all_transaction_report: over_all_transaction_report,
 };

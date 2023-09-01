@@ -11,10 +11,12 @@ module.exports.setRouter = (app) => {
   app.post (`${baseUrl}/place_bet`,betController.place_bet);
   app.post (`${baseUrl}/get_placed_bet`,betController.get_placed_bet);
   //app.get(`${baseUrl}/gen_random`, auth.isAuthorized,betController.gen_random);
-  app.post (`${baseUrl}/add_balance`,betController.add_balance);
+  app.post (`${baseUrl}/add_balance`,auth.isAuthorized,betController.add_balance);
+  app.post (`${baseUrl}/withdraw_balance`,auth.isAuthorized,betController.withdraw_balance);
   app.post(`${baseUrl}/get_bet_history`,auth.isAuthorized,betController.get_bet_history);
   app.post(`${baseUrl}/get_transaction_history`,betController.get_transaction_history);
   app.post(`${baseUrl}/save_multiple_bet`, auth.isAuthorized,betController.save_multiple_bet);
+  app.get(`${baseUrl}/over_all_transaction_report`, auth.isAuthorized,betController.over_all_transaction_report);
   
   //app.post(`${baseUrl}/payOut`, auth.isAuthorized,betController.payOut);
 };
