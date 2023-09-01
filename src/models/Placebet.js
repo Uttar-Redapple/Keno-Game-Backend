@@ -92,6 +92,10 @@ const Placebet = dataAPI.define(
     draw_or_add: {
       type: Sequelize.INTEGER,
     },
+    win_amount :{
+      type: Sequelize.INTEGER,
+
+    },
     draw_date : {
       type :Sequelize.DATE,
     },

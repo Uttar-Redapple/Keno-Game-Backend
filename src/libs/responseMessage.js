@@ -50,6 +50,7 @@ module.exports = {
   PAY_OUT_TABLE_DATA_92_FOUND : "Payout Table updated",
   PAY_OUT_TABLE_DATA_92_NOT_FOUND : "Failed to update Payout Table",
   INCORRECT_CLIENT_ID : "Client_id is not correct",
+  TABLE_EMPTY : "There is no data in the database table",
   stateList: "State list",
   OTP_SEND: "OTP sent Successfully!",
   INCORRECT_OTP: "Incorrect OTP",

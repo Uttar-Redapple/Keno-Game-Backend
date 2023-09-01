@@ -18,6 +18,7 @@ let previous_draw = async() => {
         raw : true
     };
     const last_draw = await FindLastDraw(query_for_last_draw);
+    console.log("last_draw",last_draw);
     let {draw_id} = last_draw ;
     draw_id = draw_id+1;
     console.log("last_draw",draw_id);
