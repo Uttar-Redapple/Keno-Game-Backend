@@ -239,11 +239,14 @@ let save_multiple_bet = async (req, res, next) => {
         req.body.multiple_place_bet[i].client_id = req.user.id;
         req.body.multiple_place_bet[i].total_amount = find_client[0].amount;
       }
+      
       delete req.body.multiple_place_bet.pays;
       delete req.body.multiple_place_bet.toWin;
       delete req.body.multiple_place_bet.time;
       delete req.body.multiple_place_bet.toamount;
       //delete req.body.multiple_place_bet.amount;
+      console.log("total_bet_amount_of_multiple",total_bet_amount_of_multiple);
+      console.log("find_client[0].amount",find_client[0].amount);
       const updated_balance_after_multiple_place_bet =
         find_client[0].amount - total_bet_amount_of_multiple;
       const bet_created = await Placebet.bulkCreate(
@@ -256,6 +259,7 @@ let save_multiple_bet = async (req, res, next) => {
       const condition_for_client_balance_update = {
         where: { client_id: req.user.id },
       };
+      console.log("updated_balance_after_multiple_place_bet",updated_balance_after_multiple_place_bet);
       const client_balance_updated = await UpdateClientBalance(
         query_to_update_client_balance_after_multiple_bet,
         condition_for_client_balance_update
@@ -417,6 +421,32 @@ let add_balance = async (req, res, next) => {
     return next(error);
   }
 };
+//update balance
+let update_balance = async (req,res,next) =>{
+  const query_for_client_details = {
+    where : {client_id : req.user.id},
+    raw : true
+  };
+  const client = await FindSpecificClient(query_for_client_details);
+  if(update_balance){
+    res.status(200).send({
+      responseMessage: "your balance has been updated successfully",
+      updated_amount: client.amount,
+      error: false,
+
+    })
+  }
+  else{
+    res.status(400).send({
+      responseMessage: "your balance has been updated successfully",
+      updated_amount: client.amount,
+      error: true
+
+    })
+  }
+
+
+}
 //withdraw balance
 let withdraw_balance = async (req, res, next) => {
   try {
@@ -804,4 +834,5 @@ module.exports = {
   payOut: payOut,
   save_multiple_bet: save_multiple_bet,
   over_all_transaction_report: over_all_transaction_report,
+  update_balance:update_balance
 };

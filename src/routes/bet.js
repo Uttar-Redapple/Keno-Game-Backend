@@ -17,7 +17,7 @@ module.exports.setRouter = (app) => {
   app.post(`${baseUrl}/get_transaction_history`,betController.get_transaction_history);
   app.post(`${baseUrl}/save_multiple_bet`, auth.isAuthorized,betController.save_multiple_bet);
   app.get(`${baseUrl}/over_all_transaction_report`, auth.isAuthorized,betController.over_all_transaction_report);
-  
+  app.get(`${baseUrl}/update_balance`, auth.isAuthorized,betController.update_balance);
   //app.post(`${baseUrl}/payOut`, auth.isAuthorized,betController.payOut);
 };
 
