@@ -193,10 +193,22 @@ let place_bet = async (req, res, next) => {
 //save bet
 let save_multiple_bet = async (req, res, next) => {
   try {
+
     //let guest_id = uuidv4();
     //let bet_id = uuidv4();
     console.log("req.body", req.body);
-    const length = req.body.multiple_place_bet.length;
+    const keys = Object.keys(req.body);
+    let data = keys.map( (key, val ) => {
+      return `The ＄{key} is ＄{val}`; 
+    });
+    const objValues = Object.values(req.body);
+
+    console.log("keys",keys);
+    console.log("data",data);
+    console.log("objValues",objValues);
+    const multiple_place_bet = objValues.flat();
+    console.log("multiple_place_bet",multiple_place_bet);
+    const length = multiple_place_bet.length;
     const query_for_find_client = {
       where: { client_id: req.user.id },
       raw: true,
@@ -214,43 +226,44 @@ let save_multiple_bet = async (req, res, next) => {
     //draw_id = draw_id+1;
     console.log("last_draw", draw_id);
     //console.log("length",length);
-    let { multiple_place_bet } = req.body;
+    //let { multiple_place_bet } = req.body;
     //console.log("multiple_place_bettt",multiple_place_bet);
 
     let total_bet_amount_of_multiple = 0;
     for (let i of multiple_place_bet) {
-      total_bet_amount_of_multiple = total_bet_amount_of_multiple + 1;
+      total_bet_amount_of_multiple += i.amount;
     }
     console.log("total_bet_amount_of_multiple", total_bet_amount_of_multiple);
     //req.body.multiple_place_bet.bet_amount = req.body.multiple_place_bet.amount;
 
-    console.log("req.body", req.body.multiple_place_bet);
+    //console.log("req.body", req.body.multiple_place_bet);
     if (total_bet_amount_of_multiple > find_client[0].amount) {
       return res.status(400).send({
         message: responseMessage.BET_AMOUNT_CONFLICT,
         error: true,
       });
     } else {
-      for (let i = 0; i < req.body.multiple_place_bet.length; i++) {
-        req.body.multiple_place_bet[i].draw_id = draw_id + 1;
-        req.body.multiple_place_bet[i].bet_id = uuidv4();
-        req.body.multiple_place_bet[i].bet_amount =
-          req.body.multiple_place_bet[i].amount;
-        req.body.multiple_place_bet[i].client_id = req.user.id;
-        req.body.multiple_place_bet[i].total_amount = find_client[0].amount;
+      for (let i = 0; i < multiple_place_bet.length; i++) {
+        draw_id+=1 ;
+        multiple_place_bet[i].draw_id = draw_id + 1;
+        multiple_place_bet[i].bet_id = uuidv4();
+        multiple_place_bet[i].bet_amount =
+          multiple_place_bet[i].amount;
+        multiple_place_bet[i].client_id = req.user.id;
+        multiple_place_bet[i].total_amount = find_client[0].amount;
       }
-      
-      delete req.body.multiple_place_bet.pays;
-      delete req.body.multiple_place_bet.toWin;
-      delete req.body.multiple_place_bet.time;
-      delete req.body.multiple_place_bet.toamount;
-      //delete req.body.multiple_place_bet.amount;
-      console.log("total_bet_amount_of_multiple",total_bet_amount_of_multiple);
-      console.log("find_client[0].amount",find_client[0].amount);
+
+      delete multiple_place_bet.pays;
+      delete multiple_place_bet.toWin;
+      delete multiple_place_bet.time;
+      delete multiple_place_bet.toamount;
+      //delete multiple_place_bet.amount;
+      console.log("total_bet_amount_of_multiple", total_bet_amount_of_multiple);
+      console.log("find_client[0].amount", find_client[0].amount);
       const updated_balance_after_multiple_place_bet =
         find_client[0].amount - total_bet_amount_of_multiple;
       const bet_created = await Placebet.bulkCreate(
-        req.body.multiple_place_bet
+        multiple_place_bet
       );
       console.log("bet_created", bet_created);
       const query_to_update_client_balance_after_multiple_bet = {
@@ -259,7 +272,10 @@ let save_multiple_bet = async (req, res, next) => {
       const condition_for_client_balance_update = {
         where: { client_id: req.user.id },
       };
-      console.log("updated_balance_after_multiple_place_bet",updated_balance_after_multiple_place_bet);
+      console.log(
+        "updated_balance_after_multiple_place_bet",
+        updated_balance_after_multiple_place_bet
+      );
       const client_balance_updated = await UpdateClientBalance(
         query_to_update_client_balance_after_multiple_bet,
         condition_for_client_balance_update
@@ -284,7 +300,7 @@ let get_placed_bet = async (req, res, next) => {
       bet_id: Joi.string().required,
     });
     const bet = {
-      bet_id: req.body.bet_id,
+      bet_id: bet_id,
     };
     console.log("req.body.bet_id", req.body.bet_id);
     const validated_body = schema.validate(bet);
@@ -422,31 +438,26 @@ let add_balance = async (req, res, next) => {
   }
 };
 //update balance
-let update_balance = async (req,res,next) =>{
+let update_balance = async (req, res, next) => {
   const query_for_client_details = {
-    where : {client_id : req.user.id},
-    raw : true
+    where: { client_id: req.user.id },
+    raw: true,
   };
   const client = await FindSpecificClient(query_for_client_details);
-  if(update_balance){
+  if (update_balance) {
     res.status(200).send({
       responseMessage: "your balance has been updated successfully",
       updated_amount: client.amount,
       error: false,
-
-    })
-  }
-  else{
+    });
+  } else {
     res.status(400).send({
       responseMessage: "your balance has been updated successfully",
       updated_amount: client.amount,
-      error: true
-
-    })
+      error: true,
+    });
   }
-
-
-}
+};
 //withdraw balance
 let withdraw_balance = async (req, res, next) => {
   try {
@@ -588,37 +599,34 @@ let get_bet_history = async (req, res, next) => {
               rtp = i.payout;
               console.log("i.payout", i.payout);
               console.log("rtp", rtp);
+              const obj_of_rtp = JSON.parse(rtp);
+              console.log("obj_of_rtp", obj_of_rtp);
+              let rtp_for_winning_number;
+              for (const each in obj_of_rtp) {
+                if (each == numbers_matched) {
+                  rtp_for_winning_number = obj_of_rtp[each];
+                }
+              }
+              console.log("winned rtp", rtp_for_winning_number);
+              const placed_bet_amount = bet.bet_amount;
+              const win_amount = placed_bet_amount * rtp_for_winning_number;
+              console.log("win_amount", win_amount);
+              bet.winamount = win_amount;
             } else {
               bet.winamount = 0;
             }
           }
-          console.log("rtp", rtp);
-
-          const obj_of_rtp = JSON.parse(rtp);
-          console.log("obj_of_rtp", obj_of_rtp);
-          let rtp_for_winning_number;
-          for (const each in obj_of_rtp) {
-            if (each == numbers_matched) {
-              rtp_for_winning_number = obj_of_rtp[each];
-            }
-          }
-          console.log("winned rtp", rtp_for_winning_number);
-          const placed_bet_amount = bet.bet_amount;
-          const win_amount = placed_bet_amount * rtp_for_winning_number;
-          console.log("win_amount", win_amount);
-          bet.winamount = win_amount;
-        } else {
-          bet.winamount = 0;
+          //console.log("rtp", rtp);
         }
       }
       if (bet_history.length !== 0) {
         for (let i = 0; i < bet_history.length; i++) {
-          console.log("bet_history", bet_history[i].win_amount);
+          //console.log("bet_history", bet_history[i].win_amount);
           const win = await Placebet.update(
             { win_amount: bet_history[i].win_amount },
             { where: { client_id: bet_history[i].client_id } }
           );
-          console.log("win", win);
+          //console.log("win", win);
         }
 
         if (last_bet.draw_id < last_draw_id.draw_id) {
@@ -759,10 +767,13 @@ let over_all_transaction_report = async (req, res, next) => {
     };
     const operator = await FindSpecificClient(query_to_find_operator);
     let sql_for_overall_transaction =
-    "select ts.client_id,ct.user_name,ct.name,ts.transaction_id,ct.client_id,ct.created_by,ts.draw,ts.add,ts.createdAt from Client ct left join Transaction ts ON ts.client_id=ct.client_id";
-    let over_all_transaction_history = await dataAPI.query(sql_for_overall_transaction, {
-       type: dataAPI.QueryTypes.SELECT,
-     });
+      "select ts.client_id,ct.user_name,ct.name,ts.transaction_id,ct.client_id,ct.created_by,ts.draw,ts.add,ts.createdAt from Client ct left join Transaction ts ON ts.client_id=ct.client_id";
+    let over_all_transaction_history = await dataAPI.query(
+      sql_for_overall_transaction,
+      {
+        type: dataAPI.QueryTypes.SELECT,
+      }
+    );
     // const query_for_admin_transaction = { raw: true };
     // const over_all_transaction_history = await FindTransaction();
     // console.log("over_all_transaction_history", over_all_transaction_history);
@@ -834,5 +845,5 @@ module.exports = {
   payOut: payOut,
   save_multiple_bet: save_multiple_bet,
   over_all_transaction_report: over_all_transaction_report,
-  update_balance:update_balance
+  update_balance: update_balance,
 };
