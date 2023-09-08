@@ -579,43 +579,77 @@ let get_bet_history = async (req, res, next) => {
           console.log("arr1", arr1);
           console.log("arr2", arr2);
 
-          const commonElements = findCommonElements(arr2, arr1);
-          console.log("commonElements", commonElements);
-          //bet.winamount = commonElements.length;
-          const query = { attributes: ["numbers_match", "payout"], raw: true };
-          const payout_table = await PayOutTableServices(query);
-          console.log("payout_table", payout_table);
-          //const total_number_selected_by_bet_placer = numbers_selected_by_bet_placer.length;
-          //console.log(numbers_selected_by_bet_placer.length);
-          const numbers_matched = commonElements.length;
-          console.log("numbers_matched", numbers_matched);
-          var rtp;
-          for (let i of payout_table) {
-            console.log("i", i);
-            //console.log("commonElements.length",commonElements.length);
 
-            if (commonElements.length == i.numbers_match) {
-              console.log("i.numbers_match", i.numbers_match);
-              rtp = i.payout;
-              console.log("i.payout", i.payout);
-              console.log("rtp", rtp);
-              const obj_of_rtp = JSON.parse(rtp);
-              console.log("obj_of_rtp", obj_of_rtp);
-              let rtp_for_winning_number;
-              for (const each in obj_of_rtp) {
-                if (each == numbers_matched) {
-                  rtp_for_winning_number = obj_of_rtp[each];
-                }
-              }
-              console.log("winned rtp", rtp_for_winning_number);
-              const placed_bet_amount = bet.bet_amount;
-              const win_amount = placed_bet_amount * rtp_for_winning_number;
-              console.log("win_amount", win_amount);
-              bet.winamount = win_amount;
-            } else {
-              bet.winamount = 0;
-            }
+          let check_player_selection = arr1[0];
+          const placed_bet_amount = bet.bet_amount;
+          if(check_player_selection=="heads"){
+            var heads = arr2.filter(function(item) {
+              return (item > 0 && item < 41);
+            });
+            console.log("heads",heads);
+            console.log("heads.length",heads.length);
+            win_amount = placed_bet_amount * heads.length;
+            bet.winamount = win_amount;
+          }else if (check_player_selection=="tails"){
+            var tails = arr2.filter(function(item) {
+              return (item > 40 && item < 81);
+            });
+            console.log("tails",tails);
+            console.log("tails.length",tails.length);
+            win_amount = placed_bet_amount * tails.length;
+            bet.winamount = win_amount;
+
           }
+          else if(check_player_selection=="evens"){
+            const evens = arr2.filter(number => {
+              return number % 2 === 0;
+            });
+            console.log("evens",evens);
+            console.log("evens.length",evens.length);
+            const win_amount = placed_bet_amount * evens.length;
+            bet.winamount = win_amount;
+          }
+          else{
+            const commonElements = findCommonElements(arr2, arr1);
+            console.log("commonElements", commonElements);
+            //bet.winamount = commonElements.length;
+            const query = { attributes: ["numbers_match", "payout"], raw: true };
+            const payout_table = await PayOutTableServices(query);
+            console.log("payout_table", payout_table);
+            //const total_number_selected_by_bet_placer = numbers_selected_by_bet_placer.length;
+            //console.log(numbers_selected_by_bet_placer.length);
+            const numbers_matched = commonElements.length;
+            console.log("numbers_matched", numbers_matched);
+            var rtp;
+            for (let i of payout_table) {
+              console.log("i", i);
+              //console.log("commonElements.length",commonElements.length);
+  
+              if (arr1.length == i.numbers_match) {
+                console.log("i.numbers_match", i.numbers_match);
+                rtp = i.payout;
+                console.log("i.payout", i.payout);
+                console.log("rtp", rtp);
+                const obj_of_rtp = JSON.parse(rtp);
+                console.log("obj_of_rtp", obj_of_rtp);
+                let rtp_for_winning_number;
+                for (const each in obj_of_rtp) {
+                  if (each == numbers_matched) {
+                    rtp_for_winning_number = obj_of_rtp[each];
+                  }
+                }
+                console.log("winned rtp", rtp_for_winning_number);
+                
+                const win_amount = placed_bet_amount * rtp_for_winning_number;
+                console.log("win_amount", win_amount);
+                bet.winamount = win_amount;
+              } else {
+                bet.winamount = 0;
+              }
+            }
+
+          }
+          
           //console.log("rtp", rtp);
         }
       }
