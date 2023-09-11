@@ -198,13 +198,11 @@ let save_multiple_bet = async (req, res, next) => {
     //let bet_id = uuidv4();
     console.log("req.body", req.body);
     const keys = Object.keys(req.body);
-    let data = keys.map( (key, val ) => {
-      return `The ＄{key} is ＄{val}`; 
-    });
+    
     const objValues = Object.values(req.body);
 
     console.log("keys",keys);
-    console.log("data",data);
+    
     console.log("objValues",objValues);
     const multiple_place_bet = objValues.flat();
     console.log("multiple_place_bet",multiple_place_bet);
