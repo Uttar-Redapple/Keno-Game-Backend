@@ -10,6 +10,7 @@ const FindSpecificClient = async (query) => {
 };
 const UpdateClientBalance = async (query,options) => {
   const balance = await ClientTable.update(query,options);
+  console.log("balance",balance);
   return balance ;
 }
 module.exports = {
