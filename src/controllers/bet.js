@@ -298,7 +298,7 @@ let get_placed_bet = async (req, res, next) => {
       bet_id: Joi.string().required,
     });
     const bet = {
-      bet_id: bet_id,
+      bet_id: req.body.bet_id,
     };
     console.log("req.body.bet_id", req.body.bet_id);
     const validated_body = schema.validate(bet);
@@ -556,7 +556,7 @@ let get_bet_history = async (req, res, next) => {
       };
       const last_draw_id = await FindLastDraw(query_for_last_draw);
       let sql =
-        "select dt.draw_id,dt.numbers_drawn,case when dt.draw_id is null then '-' else 999 end as winamount ,pb.*,dt.* from Placebet pb left join DrawTable dt ON pb.draw_id=dt.draw_id where pb.client_id='" +
+        "select dt.draw_id,dt.numbers_drawn,case when dt.draw_id is null then '-' else 999 end as win_amount ,pb.*,dt.* from Placebet pb left join DrawTable dt ON pb.draw_id=dt.draw_id where pb.client_id='" +
         req.body.id +
         "' ORDER BY pb.createdAt DESC LIMIT 10";
       console.log("sql", sql);
@@ -650,12 +650,15 @@ let get_bet_history = async (req, res, next) => {
           
           //console.log("rtp", rtp);
         }
+        delete bet.win_amount ;
       }
+      console.log("bet_history",bet_history);
+
       if (bet_history.length !== 0) {
         for (let i = 0; i < bet_history.length; i++) {
           //console.log("bet_history", bet_history[i].win_amount);
           const win = await Placebet.update(
-            { win_amount: bet_history[i].win_amount },
+            { win_amount: bet_history[i].winamount },
             { where: { client_id: bet_history[i].client_id } }
           );
           //console.log("win", win);
