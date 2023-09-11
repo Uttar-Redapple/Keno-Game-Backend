@@ -18,7 +18,7 @@ module.exports.setRouter = (app) => {
   app.post(`${baseUrl}/create`, auth.isAuthorized,clientController.create);
   app.post(`${baseUrl}/edit_created_client`,auth.isAuthorized,clientController.edit_created_client);
   app.post(`${baseUrl}/delete_client`,auth.isAuthorized, clientController.delete_client);
-  app.post(`${baseUrl}/create_player`, clientController.create_player);
+  app.post(`${baseUrl}/create_player`,auth.isAuthorized, clientController.create_player);
   app.post(`${baseUrl}/find_player`, auth.isAuthorized,clientController.find_player);
   
 };

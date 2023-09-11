@@ -477,11 +477,13 @@ let create = async (req, res, next) => {
       });
     } else {
       // Save Client in the database
+      console.log("req.user.id",req.user.id);
       const passwordHash = await bcrypt.hash(req.body.password, 10);
       validatedBody.value.password = passwordHash;
       validatedBody.value.client_id = clientId;
       validatedBody.value.creater_id = req.user.id;
       validatedBody.value.created_by = dataValues.client_role;
+      console.log("req.user.id",req.user.id);
       console.log(
         "I am the data type of created_by",
         typeof dataValues.client_role
@@ -599,10 +601,11 @@ let create_player = async (req, res, next) => {
       });
     } else {
       // Save Client in the database
+      console.log("req.user.id",req.user.id);
       const passwordHash = await bcrypt.hash(req.body.password, 10);
       validatedBody.value.password = passwordHash;
       validatedBody.value.client_id = clientId;
-      validatedBody.value.creater_id = req.client_id;
+      validatedBody.value.creater_id = req.user.id;
       validatedBody.value.created_by = dataValues.client_role;
       console.log(
         "I am the data type of created_by",
