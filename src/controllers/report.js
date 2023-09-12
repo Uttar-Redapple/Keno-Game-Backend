@@ -34,7 +34,7 @@ let report = async (req, res, next) => {
         type: dataAPI.QueryTypes.SELECT,
       });
 
-//console.log("bet_history", bet_history);
+console.log("bet_history", bet_history);
 if(bet_history)
 {
   for(let report of bet_history){
