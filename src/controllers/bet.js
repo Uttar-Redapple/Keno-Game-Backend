@@ -556,7 +556,7 @@ let get_bet_history = async (req, res, next) => {
       };
       const last_draw_id = await FindLastDraw(query_for_last_draw);
       let sql =
-        "select dt.draw_id,dt.numbers_drawn,case when dt.draw_id is null then '-' else 999 end as win_amount ,pb.*,dt.* from Placebet pb left join DrawTable dt ON pb.draw_id=dt.draw_id where pb.client_id='" +
+        "select dt.draw_id,dt.numbers_drawn,case when dt.draw_id is null then '0' else 999 end as win_amount ,pb.*,dt.* from Placebet pb left join DrawTable dt ON pb.draw_id=dt.draw_id where pb.client_id='" +
         req.body.id +
         "' ORDER BY pb.createdAt DESC LIMIT 10";
       console.log("sql", sql);
